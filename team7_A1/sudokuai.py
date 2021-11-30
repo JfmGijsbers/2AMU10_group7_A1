@@ -15,7 +15,8 @@ CHECKS = {
     "SCORING": 2
 }
 SCORES = [0, 1, 3, 7]
-DEBUG = True
+DEBUG = False
+
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -24,9 +25,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     """
     TODO:
-        - function to generate all legal moves
-            - pruning?
-        - evaluation function
+        - function to generate all legal moves - DONE
+        - evaluation function - DONE
+        - ALWAYS have a move proposed (so propose a 'random' move before calculating layers)
         - minimax tree search algorithm to find best move
     """
 
@@ -38,20 +39,28 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         N = game_state.board.N
 
         all_moves = self.get_all_moves(game_state)
+        root_move = Move(0,0,0)
+        root = Node(game_state, 0, [], root_move)
 
+        # LOOP: change our_move
+        self.calculate_layer(root, all_moves, True)
+        for child in root.children:
+            child.update_gamestate()
+            all_moves = self.get_all_moves(child.game_state)
+            self.calculate_layer(child, all_moves, False)
+
+        print(root.children[0].game_state)
+        print(root.children[0].value)
+        print(root.children[0].move)
+
+
+
+    def calculate_layer(self, root, all_moves: list, our_move: bool):
         for move in all_moves:
-            eval = self.eval(game_state, move)
-            if eval == -1:
-                self.debug(str(eval))
-                self.debug(str(move))
-                pass
-            else:
-                if eval > self.highest_value:
-                    self.highest_value = eval
-                    self.propose_move(move)
-                self.debug(str(eval))
-                self.debug(str(move))
-            # if eval(move) > self.best_move[2]: self.best_move = move else continue
+            node = Node(root.game_state, self.evaluate(root.game_state, move), [], move)
+            if not our_move:
+                node.value *= -1
+            root.add_child(node)
 
 
     def get_all_moves(self, game_state: GameState):
@@ -60,9 +69,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         def possible(i, j, value):
             return game_state.board.get(i, j) == SudokuBoard.empty and not TabooMove(i, j, value) in game_state.taboo_moves
 
-        return [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(i, j, value)]
+        return [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(j, i, value)]
 
-    def eval(self, game_state: GameState, move: Move):
+    def evaluate(self, game_state: GameState, move: Move):
         """
             Evaluates a single move
         """
@@ -95,11 +104,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 1       valid move
                 2       scoring move
         """
-        index = move.i
+        index = move.j
         values = []
         valid = False
         for i in range(game_state.board.N):
-            if i == move.j:
+            # i == move.j : CORRECT
+            if i == move.i:
                 pass
             elif (game_state.board.get(index, i) != 0):
                 values.append(game_state.board.get(index, i))
@@ -120,14 +130,15 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 1       valid move
                 2       scoring move
         """
-        index = move.j
+        index = move.i
         values = []
         valid = False
         for k in range(game_state.board.N):
-            if k == move.i:
+            # k == move.i : CORRECT
+            if k == move.j:
                 pass
-            elif (game_state.board.get(index, k) != 0):
-                values.append(game_state.board.get(index, k))
+            elif (game_state.board.get(k, index) != 0):
+                values.append(game_state.board.get(k, index))
             else:
                 valid = True
         if move.value in values:
@@ -178,6 +189,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print(text)
             print("-" * 25)
 
+
     def get_children(self, state: Node) -> List[Node]:
         """
         Returns a list of states that follow form state
@@ -220,6 +232,35 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #         if beta[2] <= alpha[2]:
         #             break
         #     return minValue
+
+class Node:
+    def __init__(self, game_state: GameState, value: int, children: list, move: Move):
+        self.game_state = game_state
+        self.value = value
+        self.children = children
+        self.move = move
+
+    def __str__(self):
+        for child in self.children:
+            if child.value == -1:
+                pass
+            print(str(child.move) + " has value: " + str(child.value))
+
+    def add_child(self, node):
+        if (node.value == -1):
+            return
+        self.children.append(node)
+
+    def update_gamestate(self):
+        self.game_state.board.put(self.move.i, self.move.j, self.move.value)
+
+
+
+
+
+
+
+
 
     def get_minmax(self, list_nodes:List, max:bool) -> dict[tuple, float]:
         """
