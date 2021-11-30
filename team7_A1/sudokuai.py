@@ -13,7 +13,7 @@ CHECKS = {
     "SCORING": 2
 }
 SCORES = [0, 1, 3, 7]
-DEBUG = True
+DEBUG = False
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -22,9 +22,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     """
     TODO:
-        - function to generate all legal moves
-            - pruning?
-        - evaluation function
+        - function to generate all legal moves - DONE
+        - evaluation function - DONE
+        - ALWAYS have a move proposed (so propose a 'random' move before calculating layers)
         - minimax tree search algorithm to find best move
     """
 
@@ -49,7 +49,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     self.propose_move(move)
                 self.debug(str(eval))
                 self.debug(str(move))
-            # if eval(move) > self.best_move[2]: self.best_move = move else continue
 
 
     def get_all_moves(self, game_state: GameState):
@@ -64,6 +63,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
             Evaluates a single move
         """
+        print("checking move " + str(move))
         scores = 0
         col = self.check_column(game_state, move)
         if col == CHECKS["INVALID"]:

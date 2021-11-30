@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # Temporary python files
-.pyc
+*.pyc
 
 # C extensions
 *.so
