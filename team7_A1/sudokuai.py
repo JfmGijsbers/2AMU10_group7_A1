@@ -4,6 +4,8 @@
 
 import random
 import time
+import math
+from typing import List
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 
@@ -176,4 +178,62 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print(text)
             print("-" * 25)
 
-    
+    def get_children(self, state: Node) -> List[Node]:
+        """
+        Returns a list of states that follow form state
+        :param state:
+        :return: list of GameState
+        """
+        pass
+        # return Node.get_children
+
+    def minimax(self, state: Node, depth: int, alpha: float, beta: float, isMaximisingPlayer: bool) -> tuple:
+        """
+        Recursively evaluates nodes in game tree
+        :param state: starting state
+        :param depth: terminal search depth
+        :param alpha: pruning
+        :param beta: pruning
+        :param isMaximisingPlayer: isMaximisingplayer
+        :return: tuple (x,y,val) where val is in {1...N}
+        """
+        pass
+        # if depth == 0 or not state.has_children:
+        #     return evaluate(state)
+        #
+        # children = getChildren(state);
+        # if ismaximisingPlayer:
+        #     maxValue = -math.inf
+        #     for child in children:
+        #         value = minimax(child, depth-1, alpha, beta, False)
+        #         maxValue = get_minmax([maxValue, value], True)
+        #         beta = get_minmax([maxValue, beta], True)
+        #         if beta[2] <= alpha[2]:
+        #             break
+        #     return maxValue
+        # else:
+        #     minValue = math.inf
+        #     for child in children:
+        #         value = minimax(child, depth-1, alpha, beta, True)
+        #         minValue = get_minmax([minValue, value], False)
+        #         beta = get_minmax([minValue, beta], False)
+        #         if beta[2] <= alpha[2]:
+        #             break
+        #     return minValue
+
+    def get_minmax(self, list_nodes:List, max:bool) -> dict[tuple, float]:
+        """
+        makes a key value pair of the nodes with only the value
+        :param list_nodes:
+        :return:
+        """
+        pass
+        # dic = {}
+        # for node in list_nodes:
+        #     for x, y, val in node:
+        #         dic[(x,y,val)]=val
+        #
+        # if max:
+        #     return max(dic, key=dic.get)
+        # else:
+        #     return min(dic, key=dic.get)
