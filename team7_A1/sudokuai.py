@@ -231,7 +231,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # dic = {}
         # for node in list_nodes:
         #     for x, y, val in node:
-        #         dic[(x,y,val)]=val
+        #         dic[(x,y,val)]=eval((x,y,val))
         #
         # if max:
         #     return max(dic, key=dic.get)
