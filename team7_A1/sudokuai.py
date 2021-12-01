@@ -70,20 +70,22 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
 
         all_moves = self.get_all_moves(game_state)
+        self.propose_move(Move(all_moves[0].j, all_moves[0].i, all_moves[0].value))
         player_1 = True
         root_move = Move(0, 0, 0)
-        for move in all_moves:
-            if evaluate(game_state, move) != -1:
-                # We assumed x and y were flipped. To prevent
-                # rewriting all the code, we swap them back here.
-                self.propose_move(Move(move.j, move.i, move.value))
-                break
+        move = random.choice(all_moves)
+        while evaluate(game_state, move) == -1:
+            move = random.choice(all_moves)
+        self.propose_move(Move(move.j, move.i, move.value))
         root = Node(game_state, root_move, player_1)
         depth = 0
 
         # First, we need to compute layer 1
         root = self.calculate_children(root, all_moves, player_1)
         depth = depth + 1
+        best_move = self.minimax(root, depth, -math.inf, math.inf, player_1).move
+        print("Found best move: " + str(best_move))
+        self.propose_move(Move(best_move.j, best_move.i, best_move.value))
         player_1 = not player_1
 
         # Then, keep computing moves as long as there are
@@ -103,9 +105,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
 
             depth = depth + 1
+            # If the last turn is not ours,
+            # we don't want to run the minimax for this turn
             if bool(kids) and not player_1:
                 best_move = self.minimax(root, depth, -math.inf, math.inf, player_1).move
-                print(f"best move is:{best_move}")
                 self.propose_move(Move(best_move.j, best_move.i, best_move.value))
             print("LAYER FINISHED")
             player_1 = not player_1
@@ -157,22 +160,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return node
 
         children = node.children
-        print(f"is_maximising_player is: {is_maximising_player}")
-        print(f"depth is: {depth}")
 
         if is_maximising_player:
             # maxValue = Node(None, -math.inf, None)
             maxValue = deepcopy(node)
             maxValue.value = -math.inf
-            print(f"{node.move}")
-            print(f"{len(children)} children")
+            #print(f"{node.move}")
+            #print(f"{len(children)} children")
             for child in children:
-                print(f"proposed child move: {child.move}")
+                #print(f"proposed child move: {child.move}")
                 value = self.minimax(child, depth - 1, alpha, beta, False)
-                print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
+                #print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
+                #print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
                 # if beta <= alpha:
                 #     print("beta is less or equal to alpha")
                 #     break
@@ -183,10 +184,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
-                print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
+                #print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
+                #print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
                 # if beta <= alpha:
                 #     print("beta is less or equal to alpha")
                 #     break
