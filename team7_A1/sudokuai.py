@@ -104,8 +104,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
 
             depth = depth + 1
-            best_move = self.minimax(root, depth,0, 0, player_1)
-            self.propose_move(self.minimax(root, depth, 0,0, player_1).move)
+            # best_move = self.minimax(root, depth,0, 0, player_1)
+            # self.propose_move(self.minimax(root, depth, 0,0, player_1).move)
             print("LAYER FINISHED")
             player_1 = not player_1
 
@@ -157,7 +157,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         children = node.children
 
         if is_maximising_player:
-            maxValue = Node(None, -math.inf, None)
+            # maxValue = Node(None, -math.inf, None)
+            maxValue = Node(None, None, None)
+            maxValue.value = -math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
@@ -167,7 +169,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     break
             return maxValue
         else:
-            minValue = Node(None, math.inf, None)
+            # minValue = Node(None, math.inf, None)
+            minValue = Node(None, None, None)
+            minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
                 minValue = min([minValue, value], key=lambda state: state.value)
