@@ -194,14 +194,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print(text)
             print("-" * 25)
 
-    def get_children(self, node: Node) -> List[Node]:
-        """
-        Returns a list of states that follow form state
-        :param node: a node with game state
-        :return: list of GameState
-        """
-        return state.get_children
-
     def minimax(self, node: Node, depth: int, alpha: int, beta: int, is_maximising_player: bool) -> Node:
         """
         Recursively evaluates nodes in game tree and returns the proposed best node
@@ -217,7 +209,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         if depth == 0 or not node.has_children:
             return evaluate(node)
 
-        children = getChildren(node)
+        children = node.children
 
         if is_maximising_player:
             maxValue = Node(None, -math.inf, None)
@@ -262,6 +254,3 @@ class Node:
 
     def has_children(self):
         return bool(self.children)
-
-    def get_children(self):
-        return self.children
