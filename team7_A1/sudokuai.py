@@ -174,9 +174,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
                 #print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
-                # if beta <= alpha:
-                #     print("beta is less or equal to alpha")
-                #     break
+                if beta <= alpha:
+                    #print("beta is less or equal to alpha")
+                    break
             return maxValue
         else:
             # minValue = Node(None, math.inf, None)
@@ -188,9 +188,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
                 #print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
-                # if beta <= alpha:
-                #     print("beta is less or equal to alpha")
-                #     break
+                if beta <= alpha:
+                    #print("beta is less or equal to alpha")
+                    break
             return minValue
 
 
