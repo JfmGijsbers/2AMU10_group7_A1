@@ -217,22 +217,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         children = getChildren(node)
 
-        def get_minmax(self, list_nodes: List, is_max: bool) -> dict[tuple, float]:
-            """
-            makes a key value pair of the nodes with only the value
-            :param list_nodes:
-            :return:
-            """
-            dic = {}
-            for node in list_nodes:
-                for x, y, val in node:
-                    dic[]=eval((x,y,val))
-
-            if is_max:
-                return max(dic, key=dic.get)
-            else:
-                return min(dic, key=dic.get)
-
         if ismaximisingPlayer:
             maxValue = Node(None, -math.inf, None)
             for child in children:
@@ -279,13 +263,3 @@ class Node:
 
     def get_children(self):
         return self.children
-
-
-
-
-
-
-
-
-
-
