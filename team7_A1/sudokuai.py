@@ -41,10 +41,8 @@ class Node:
         self.children.append(node)
 
     def update_gamestate(self):
-        try:
             self.game_state.board.put(self.move.j, self.move.i, self.move.value)
-        except:
-            print(self.value)
+
 
     def has_children(self):
         return bool(self.children)
