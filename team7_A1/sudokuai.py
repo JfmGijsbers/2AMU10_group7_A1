@@ -35,6 +35,7 @@ class Node:
         val = evaluate(self.game_state, self.move)
         if val == -1:
             self.taboo = True
+        self.value = val
         return val
 
     def add_child(self, node):
@@ -68,42 +69,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         self.highest_value = -1
         super().__init__()
 
-    def minimax(self, node: Node, depth: int, alpha, beta, is_maximising_player: bool) -> Node:
-        """
-        Recursively evaluates nodes in game tree and returns the proposed best node
-        proposed best node is the node that has either the maximum or the mimimum value in the terminal state
-        depending on is_maximising_player True or False respectively
-        :param node: starting state
-        :param depth: terminal search depth
-        :param alpha: pruning
-        :param beta: pruning
-        :param is_maximising_player: is maximising player?
-        :return: best node proposal
-        """
-        if depth == 0 or not node.has_children:
-            return evaluate(node)
-
-        children = node.children
-
-        if is_maximising_player:
-            maxValue = Node(None, -math.inf, None)
-            for child in children:
-                value = minimax(child, depth - 1, alpha, beta, False)
-                maxValue = max([maxValue, value], key=lambda state: state.value)
-                alpha = max(maxValue.value, alpha)
-                if beta <= alpha:
-                    break
-            return maxValue
-        else:
-            minValue = Node(None, math.inf, None)
-            for child in children:
-                value = minimax(child, depth - 1, alpha, beta, True)
-                minValue = max([minValue, value], key=lambda state: state.value)
-                beta = min(minValue, beta)
-                if beta <= alpha:
-                    break
-            return minValue
-
     def compute_best_move(self, game_state: GameState) -> None:
         N = game_state.board.N
 
@@ -112,6 +77,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         root_move = Move(0, 0, 0)
         root = Node(game_state, 0, root_move)
         depth = 0
+
         # First, we need to compute layer 1
         root = self.calculate_children(root, all_moves, player_1)
         depth = depth + 1
@@ -131,12 +97,14 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 for leaf in child.children:
                     temp_kids.append(leaf)
             kids = temp_kids
+
             depth = depth + 1
-            best_move = self.minimax(root, depth, math.inf, -math.inf, player_1)
+            best_move = self.minimax(root, depth,0,0, player_1)
             print(best_move.move)
             print(best_move.value)
-            self.propose_move(self.minimax(root, depth, math.inf, -math.inf, player_1).move)
+            self.propose_move(self.minimax(root, depth, 0,0, player_1).move)
             print("LAYER FINISHED")
+
             print(str(len(kids)) + " kids calculated")
             player_1 = not player_1
         for leaf in child.children:
@@ -206,6 +174,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 value = self.minimax(child, depth-1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
+                print("alpha is "+alpha)
                 if beta <= alpha:
                     break
             return maxValue
@@ -213,8 +182,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             minValue = Node(None, math.inf, None)
             for child in children:
                 value = self.minimax(child, depth-1, alpha, beta, True)
-                minValue = max([minValue, value], key=lambda state: state.value)
+                minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
+                print("beta is " + alpha)
                 if beta <= alpha:
                     break
             return minValue
@@ -246,6 +216,7 @@ def evaluate(game_state: GameState, move: Move):
             else:
                 if square == CHECKS["SCORING"]:
                     scores += 1
+    print(SCORES[scores])
     return SCORES[scores]
 
 def check_row(game_state: GameState, move: Move):
@@ -256,15 +227,15 @@ def check_row(game_state: GameState, move: Move):
             1       valid move
             2       scoring move
     """
-    index = move.j
+    i_row = move.i
     values = []
     valid = False
-    for i in range(game_state.board.N):
+    for j in range(game_state.board.n):
         # i == move.j : CORRECT
-        if i == move.i:
+        if j == i_row:
             pass
-        elif (game_state.board.get(index, i) != 0):
-            values.append(game_state.board.get(index, i))
+        elif (game_state.board.get(i_row, j) != 0):
+            values.append(game_state.board.get(i_row, j))
         else:
             valid = True
     if move.value in values:
@@ -272,7 +243,8 @@ def check_row(game_state: GameState, move: Move):
     elif valid:
         return CHECKS["VALID"]
     return CHECKS["SCORING"]
-
+# m, i rows
+# n, j col
 def check_column(game_state: GameState, move: Move):
     """
         Checks if all cells in a column are filled for a given move.
@@ -281,15 +253,15 @@ def check_column(game_state: GameState, move: Move):
             1       valid move
             2       scoring move
     """
-    index = move.i
+    i_col= move.j
     values = []
     valid = False
-    for k in range(game_state.board.N):
+    for i in range(game_state.board.m):
         # k == move.i : CORRECT
-        if k == move.j:
+        if i == i_col:
             pass
-        elif (game_state.board.get(k, index) != 0):
-            values.append(game_state.board.get(k, index))
+        elif (game_state.board.get(i, i_col) != 0):
+            values.append(game_state.board.get(i, i_col))
         else:
             valid = True
     if move.value in values:
