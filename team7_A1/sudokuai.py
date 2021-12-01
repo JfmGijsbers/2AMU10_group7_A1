@@ -43,7 +43,6 @@ class Node:
     def update_gamestate(self):
             self.game_state.board.put(self.move.j, self.move.i, self.move.value)
 
-
     def has_children(self):
         return bool(self.children)
 
@@ -104,9 +103,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
 
             depth = depth + 1
-            best_move = self.minimax(root, depth, -math.inf, math.inf, player_1).move
-            print("best move is:")
-            print(best_move)
+            best_move = self.minimax(root, depth, -math.inf, math.inf, True).move
+            print(f"best move is:{best_move}")
             self.propose_move(Move(best_move.j, best_move.i, best_move.value))
             print("LAYER FINISHED")
             player_1 = not player_1
@@ -157,17 +155,23 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return node
 
         children = node.children
+        print(f"is_maximising_player is: {is_maximising_player}")
+        print(f"depth is: {depth}")
 
         if is_maximising_player:
             # maxValue = Node(None, -math.inf, None)
             maxValue = deepcopy(node)
             maxValue.value = -math.inf
             for child in children:
+                print(f"proposed child move: {child.move}")
                 value = self.minimax(child, depth - 1, alpha, beta, False)
+                print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                if beta <= alpha:
-                    break
+                print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
+                # if beta <= alpha:
+                #     print("beta is less or equal to alpha")
+                #     break
             return maxValue
         else:
             # minValue = Node(None, math.inf, None)
@@ -175,10 +179,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
+                print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                if beta <= alpha:
-                    break
+                print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
+                # if beta <= alpha:
+                #     print("beta is less or equal to alpha")
+                #     break
             return minValue
 
 
