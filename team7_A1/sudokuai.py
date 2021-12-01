@@ -216,7 +216,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             for child in children:
                 value = minimax(child, depth-1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
-                beta = max(maxValue.value, beta)
+                alpha = max(maxValue.value, alpha)
                 if beta <= alpha:
                     break
             return maxValue
