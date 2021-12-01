@@ -202,22 +202,24 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
         return state.get_children
 
-    def minimax(self, node: Node, depth: int, alpha: int, beta: int, isMaximisingPlayer: bool) -> tuple:
+    def minimax(self, node: Node, depth: int, alpha: int, beta: int, is_maximising_player: bool) -> Node:
         """
-        Recursively evaluates nodes in game tree
+        Recursively evaluates nodes in game tree and returns the proposed best node
+        proposed best node is the node that has either the maximum or the mimimum value in the terminal state
+        depending on is_maximising_player True or False respectively
         :param node: starting state
         :param depth: terminal search depth
         :param alpha: pruning
         :param beta: pruning
-        :param isMaximisingPlayer: isMaximisingplayer
-        :return: tuple (x,y,val) where val is in {1...N}
+        :param is_maximising_player: is maximising player?
+        :return: best node proposal
         """
         if depth == 0 or not node.has_children:
             return evaluate(node)
 
         children = getChildren(node)
 
-        if ismaximisingPlayer:
+        if is_maximising_player:
             maxValue = Node(None, -math.inf, None)
             for child in children:
                 value = minimax(child, depth-1, alpha, beta, False)
