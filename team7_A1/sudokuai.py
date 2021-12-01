@@ -96,55 +96,47 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         return [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(j, i, value)]
 
-
     def debug(self, text):
         if DEBUG:
             print("-" * 25)
             print(text)
             print("-" * 25)
 
-    # def get_children(self, node: Node) -> List[Node]:
-    #     """
-    #     Returns a list of states that follow form state
-    #     :param node: a node with game state
-    #     :return: list of GameState
-    #     """
-    #     return node.children
+    def minimax(self, node: Node, depth: int, alpha: int, beta: int, is_maximising_player: bool) -> Node:
+        """
+        Recursively evaluates nodes in game tree and returns the proposed best node
+        proposed best node is the node that has either the maximum or the mimimum value in the terminal state
+        depending on is_maximising_player True or False respectively
+        :param node: starting state
+        :param depth: terminal search depth
+        :param alpha: pruning
+        :param beta: pruning
+        :param is_maximising_player: is maximising player?
+        :return: best node proposal
+        """
+        if depth == 0 or not node.has_children:
+            return evaluate(node)
 
-    # def minimax(self, node: Node, depth: int, alpha: int, beta: int, isMaximisingPlayer: bool) -> tuple:
-    #     """
-    #     Recursively evaluates nodes in game tree
-    #     :param node: starting state
-    #     :param depth: terminal search depth
-    #     :param alpha: pruning
-    #     :param beta: pruning
-    #     :param isMaximisingPlayer: isMaximisingplayer
-    #     :return: tuple (x,y,val) where val is in {1...N}
-    #     """
-    #     if depth == 0 or not node.has_children:
-    #         return self.evaluate(node)
+        children = node.children
 
-    #     children = getChildren(node)
-
-    #     if ismaximisingPlayer:
-    #         maxValue = Node(None, -math.inf, None)
-    #         for child in children:
-    #             value = minimax(child, depth-1, alpha, beta, False)
-    #             maxValue = max([maxValue, value], key=lambda state: state.value)
-    #             beta = max(maxValue.value, beta)
-    #             if beta <= alpha:
-    #                 break
-    #         return maxValue
-    #     else:
-    #         minValue = Node(None, math.inf, None)
-    #         for child in children:
-    #             value = minimax(child, depth-1, alpha, beta, True)
-    #             minValue = max([minValue, value], key=lambda state: state.value)
-    #             beta = min(minValue, beta)
-    #             if beta <= alpha:
-    #                 break
-    #         return minValue
-
+        if is_maximising_player:
+            maxValue = Node(None, -math.inf, None)
+            for child in children:
+                value = minimax(child, depth-1, alpha, beta, False)
+                maxValue = max([maxValue, value], key=lambda state: state.value)
+                alpha = max(maxValue.value, alpha)
+                if beta <= alpha:
+                    break
+            return maxValue
+        else:
+            minValue = Node(None, math.inf, None)
+            for child in children:
+                value = minimax(child, depth-1, alpha, beta, True)
+                minValue = max([minValue, value], key=lambda state: state.value)
+                beta = min(minValue, beta)
+                if beta <= alpha:
+                    break
+            return minValue
 
 class Node:
     def __init__(self, game_state, value, move):
