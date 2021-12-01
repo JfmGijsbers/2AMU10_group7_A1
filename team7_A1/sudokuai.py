@@ -51,7 +51,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # moves to make, alternating between
         # friendly moves and hostile moves.
         kids = root.children
-        while len(kids) > 0:
+        while bool(kids):
             temp_kids = []
             print(str(len(kids)) + " kids looping")
             for child in kids:
@@ -66,14 +66,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print("LAYER FINISHED")
             print(str(len(kids)) + " kids calculated")
             player_1 = not player_1
+        for leaf in child.children:
+            leaf.update_gamestate()
+            leaf.calculate_children()
 
     def calculate_children(self, root, all_moves: list, our_move: bool):
         for move in all_moves:
             new_game_state = deepcopy(root.game_state)
-            node = Node(new_game_state, evaluate(new_game_state, move), move)
+            new_move = deepcopy(move)
+            #node = Node(new_game_state, evaluate(new_game_state, new_move), new_move)
+            node = Node(new_game_state, 0, new_move)
+            node.calc_value()
             if not our_move:
                 node.value *= -1
-            if node.value > -1:
+            if not node.taboo:
                 root.add_child(node)
         return root
 
@@ -143,11 +149,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 class Node:
     def __init__(self, game_state, value, move):
         self.game_state = game_state
-        self.board = game_state.board
         self.children = []
         self.move = move
-        self.first = True
-        self.value = value
+        self.value = 0
+        self.taboo = False
 
     def __str__(self):
         for child in self.children:
@@ -156,7 +161,10 @@ class Node:
             print(str(child.move) + " has value: " + str(child.value))
 
     def calc_value(self):
-        return evaluate(self.game_state, self.move)
+        val = evaluate(self.game_state, self.move)
+        if val == -1:
+            self.taboo = True
+        return val
 
     def add_child(self, node):
         if (node.value == -1):
@@ -164,7 +172,7 @@ class Node:
         self.children.append(node)
 
     def update_gamestate(self):
-        self.board.put(self.move.j, self.move.i, self.move.value)
+        self.game_state.board.put(self.move.j, self.move.i, self.move.value)
         print(self.game_state.board)
 
 
