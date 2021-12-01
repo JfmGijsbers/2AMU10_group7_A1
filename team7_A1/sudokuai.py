@@ -233,6 +233,24 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #             break
         #     return minValue
 
+    def get_minmax(self, list_nodes: List, max: bool) -> dict[tuple, float]:
+        """
+        makes a key value pair of the nodes with only the value
+        :param list_nodes:
+        :return:
+        """
+        pass
+        # dic = {}
+        # for node in list_nodes:
+        #     for x, y, val in node:
+        #         dic[(x,y,val)]=eval((x,y,val))
+        #
+        # if max:
+        #     return max(dic, key=dic.get)
+        # else:
+        #     return min(dic, key=dic.get)
+
+
 class Node:
     def __init__(self, game_state: GameState, value: int, children: list, move: Move):
         self.game_state = game_state
@@ -262,19 +280,3 @@ class Node:
 
 
 
-    def get_minmax(self, list_nodes:List, max:bool) -> dict[tuple, float]:
-        """
-        makes a key value pair of the nodes with only the value
-        :param list_nodes:
-        :return:
-        """
-        pass
-        # dic = {}
-        # for node in list_nodes:
-        #     for x, y, val in node:
-        #         dic[(x,y,val)]=eval((x,y,val))
-        #
-        # if max:
-        #     return max(dic, key=dic.get)
-        # else:
-        #     return min(dic, key=dic.get)
