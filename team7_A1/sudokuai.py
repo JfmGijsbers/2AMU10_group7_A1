@@ -103,11 +103,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
 
             depth = depth + 1
-            best_move = self.minimax(root, depth, -math.inf, math.inf, True).move
-            print(f"best move is:{best_move}")
-            self.propose_move(Move(best_move.j, best_move.i, best_move.value))
+            if bool(kids) and not player_1:
+                best_move = self.minimax(root, depth, -math.inf, math.inf, player_1).move
+                print(f"best move is:{best_move}")
+                self.propose_move(Move(best_move.j, best_move.i, best_move.value))
             print("LAYER FINISHED")
             player_1 = not player_1
+
 
 
     def calculate_children(self, root, all_moves: list, our_move: bool):
@@ -162,6 +164,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # maxValue = Node(None, -math.inf, None)
             maxValue = deepcopy(node)
             maxValue.value = -math.inf
+            print(f"{node.move}")
+            print(f"{len(children)} children")
             for child in children:
                 print(f"proposed child move: {child.move}")
                 value = self.minimax(child, depth - 1, alpha, beta, False)
@@ -216,6 +220,7 @@ def evaluate(game_state: GameState, move: Move):
                 if square == CHECKS["SCORING"]:
                     scores += 1
     return SCORES[scores]
+
 
 def check_row(game_state: GameState, move: Move):
     """
