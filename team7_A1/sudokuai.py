@@ -41,8 +41,10 @@ class Node:
         self.children.append(node)
 
     def update_gamestate(self):
-        self.game_state.board.put(self.move.j, self.move.i, self.move.value)
-
+        try:
+            self.game_state.board.put(self.move.j, self.move.i, self.move.value)
+        except:
+            print(self.value)
 
     def has_children(self):
         return bool(self.children)
@@ -85,7 +87,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # First, we need to compute layer 1
         root = self.calculate_children(root, all_moves, player_1)
         depth = depth + 1
-        player_1 = False
+        player_1 = not player_1
 
         # Then, keep computing moves as long as there are
         # moves to make, alternating between
@@ -104,8 +106,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
 
             depth = depth + 1
-            # best_move = self.minimax(root, depth,0, 0, player_1)
-            # self.propose_move(self.minimax(root, depth, 0,0, player_1).move)
+            best_move = self.minimax(root, depth, -math.inf, math.inf, player_1).move
+            print("best move is:")
+            print(best_move)
+            self.propose_move(Move(best_move.j, best_move.i, best_move.value))
             print("LAYER FINISHED")
             player_1 = not player_1
 
@@ -158,65 +162,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         if is_maximising_player:
             # maxValue = Node(None, -math.inf, None)
-            maxValue = Node(None, None, None)
+            maxValue = deepcopy(node)
             maxValue.value = -math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                print("alpha is " + alpha)
                 if beta <= alpha:
                     break
             return maxValue
         else:
             # minValue = Node(None, math.inf, None)
-            minValue = Node(None, None, None)
+            minValue = deepcopy(node)
             minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                print("beta is " + alpha)
                 if beta <= alpha:
                     break
             return minValue
-
-
-class Node:
-    def __init__(self, game_state, value, move):
-        self.game_state = game_state
-        self.children = []
-        self.move = move
-        self.value = 0
-        self.taboo = False
-
-    def __str__(self):
-        for child in self.children:
-            if child.value == -1:
-                pass
-            print(str(child.move) + " has value: " + str(child.value))
-
-    def calc_value(self):
-        val = evaluate(self.game_state, self.move)
-        if val == -1:
-            self.taboo = True
-        return val
-
-    def add_child(self, node):
-        if (node.value == -1):
-            return
-        self.children.append(node)
-
-    def update_gamestate(self):
-        self.game_state.board.put(self.move.j, self.move.i, self.move.value)
-        print(self.game_state.board)
-
-
-    def has_children(self):
-        return bool(self.children)
-
-    def get_children(self):
-        return self.children
 
 
 def evaluate(game_state: GameState, move: Move):
