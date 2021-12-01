@@ -39,7 +39,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         N = game_state.board.N
 
         all_moves = self.get_all_moves(game_state)
-        root_move = Move(0,0,0)
+        root_move = Move(0, 0, 0)
         root = Node(game_state, 0, [], root_move)
 
         # LOOP: change our_move
@@ -53,8 +53,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         print(root.children[0].value)
         print(root.children[0].move)
 
-
-
     def calculate_layer(self, root, all_moves: list, our_move: bool):
         for move in all_moves:
             node = Node(root.game_state, self.evaluate(root.game_state, move), [], move)
@@ -62,8 +60,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 node.value *= -1
             root.add_child(node)
 
-
-    def get_all_moves(self, game_state: GameState):
+    def get_all_moves(self, game_state: GameState) -> List[Move]:
+        """
+        Returns a list of all possible moves
+        :param game_state: a game state
+        :return: a list of moves
+        """
         N = game_state.board.N
 
         def possible(i, j, value):
@@ -73,7 +75,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
     def evaluate(self, game_state: GameState, move: Move):
         """
-            Evaluates a single move
+        Evaluates a single move and returns a score
+        :param game_state: a game state
+        :param move: a move
+        :return: score
         """
         scores = 0
         col = self.check_column(game_state, move)
@@ -95,7 +100,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     if square == CHECKS["SCORING"]:
                         scores += 1
         return SCORES[scores]
-        
+
     def check_row(self, game_state: GameState, move: Move):
         """
             Checks if all cells in a row are filled for a given move.
@@ -114,7 +119,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             elif (game_state.board.get(index, i) != 0):
                 values.append(game_state.board.get(index, i))
             else:
-                valid =  True
+                valid = True
         if move.value in values:
             self.debug("row invalid")
             return CHECKS["INVALID"]
@@ -166,11 +171,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         for i in range(m):
             # then each column
             for j in range(n):
-                curr = game_state.board.get(m*row + i, n*column + j)
+                curr = game_state.board.get(m * row + i, n * column + j)
                 # Do we have an empty cell?
                 if curr == 0:
                     # Is this empty cell the move we currently want to make?
-                    if m*row + i == move.i and n*column + j == move.j:
+                    if m * row + i == move.i and n * column + j == move.j:
                         pass
                     else:
                         valid = True
@@ -189,7 +194,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             print(text)
             print("-" * 25)
 
-
     def get_children(self, state: Node) -> List[Node]:
         """
         Returns a list of states that follow form state
@@ -197,7 +201,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :return: list of GameState
         """
         pass
-        # return Node.get_children
+        # return state.get_children
 
     def minimax(self, state: Node, depth: int, alpha: float, beta: float, isMaximisingPlayer: bool) -> tuple:
         """
@@ -233,7 +237,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #             break
         #     return minValue
 
-    def get_minmax(self, list_nodes: List, max: bool) -> dict[tuple, float]:
+    def get_minmax(self, list_nodes: List, is_max: bool) -> dict[tuple, float]:
         """
         makes a key value pair of the nodes with only the value
         :param list_nodes:
@@ -245,17 +249,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #     for x, y, val in node:
         #         dic[(x,y,val)]=eval((x,y,val))
         #
-        # if max:
+        # if is_max:
         #     return max(dic, key=dic.get)
         # else:
         #     return min(dic, key=dic.get)
 
 
 class Node:
-    def __init__(self, game_state: GameState, value: int, children: list, move: Move):
+    def __init__(self, game_state: GameState, value: int, move: Move):
         self.game_state = game_state
         self.value = value
-        self.children = children
+        self.children = []
         self.move = move
 
     def __str__(self):
