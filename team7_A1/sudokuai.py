@@ -37,50 +37,50 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         super().__init__()
 
     def compute_best_move(self, game_state: GameState) -> None:
-        N = game_state.board.N
-
         all_moves = self.get_all_moves(game_state)
         player_1 = True
         root_move = Move(0, 0, 0)
-        root = Node(game_state, 0, root_move)
+        for move in all_moves:
+            if evaluate(game_state, move) != -1:
+                # We assumed x and y were flipped. To prevent
+                # rewriting all the code, we swap them back here.
+                self.propose_move(Move(move.j, move.i, move.value))
+                break
+        root = Node(game_state, root_move, player_1)
 
         # First, we need to compute layer 1
         root = self.calculate_children(root, all_moves, player_1)
+        player_1 = False
 
         # Then, keep computing moves as long as there are
         # moves to make, alternating between
         # friendly moves and hostile moves.
+        
         kids = root.children
         while bool(kids):
             temp_kids = []
-            print(str(len(kids)) + " kids looping")
             for child in kids:
-                #print(child.board)
                 child.update_gamestate()
                 new_all_moves = self.get_all_moves(child.game_state)
-                print(str(len(new_all_moves)) + " moves possible")
                 child = self.calculate_children(child, new_all_moves, player_1)
+                
                 for leaf in child.children:
                     temp_kids.append(leaf)
+                    
             kids = temp_kids
+
             print("LAYER FINISHED")
-            print(str(len(kids)) + " kids calculated")
             player_1 = not player_1
-        for leaf in child.children:
-            leaf.update_gamestate()
-            leaf.calculate_children()
 
     def calculate_children(self, root, all_moves: list, our_move: bool):
         for move in all_moves:
             new_game_state = deepcopy(root.game_state)
             new_move = deepcopy(move)
             #node = Node(new_game_state, evaluate(new_game_state, new_move), new_move)
-            node = Node(new_game_state, 0, new_move)
-            node.calc_value()
-            if not our_move:
-                node.value *= -1
+            node = Node(new_game_state, new_move, our_move)
             if not node.taboo:
                 root.add_child(node)
+
         return root
 
     def get_all_moves(self, game_state: GameState) -> List[Move]:
@@ -147,23 +147,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
 
 class Node:
-    def __init__(self, game_state, value, move):
+    def __init__(self, game_state, move, our_move):
         self.game_state = game_state
         self.children = []
         self.move = move
-        self.value = 0
+        self.our_move = our_move
         self.taboo = False
-
-    def __str__(self):
-        for child in self.children:
-            if child.value == -1:
-                pass
-            print(str(child.move) + " has value: " + str(child.value))
+        self.value = self.calc_value()
 
     def calc_value(self):
         val = evaluate(self.game_state, self.move)
         if val == -1:
             self.taboo = True
+        if not self.our_move:
+            val *= -1
         return val
 
     def add_child(self, node):
@@ -173,7 +170,6 @@ class Node:
 
     def update_gamestate(self):
         self.game_state.board.put(self.move.j, self.move.i, self.move.value)
-        print(self.game_state.board)
 
 
     def has_children(self):
@@ -197,17 +193,20 @@ def evaluate(game_state: GameState, move: Move):
     else:
         if col == CHECKS["SCORING"]:
             scores += 1
+            #print("col scoring")
         row = check_row(game_state, move)
         if row == CHECKS["INVALID"]:
             return -1
         else:
             if row == CHECKS["SCORING"]:
                 scores += 1
+                #print("row scoring")
             square = check_square(game_state, move)
             if square == CHECKS["INVALID"]:
                 return -1
             else:
                 if square == CHECKS["SCORING"]:
+                    #print("square scoring")
                     scores += 1
     return SCORES[scores]
 
@@ -272,8 +271,8 @@ def check_square(game_state: GameState, move: Move):
     values = []
     m = game_state.board.m
     n = game_state.board.n
-    row = move.i // m
-    column = move.j // n
+    column = move.i // m
+    row = move.j // n
     valid = False
     # iterate over each row
     for i in range(m):
@@ -283,7 +282,7 @@ def check_square(game_state: GameState, move: Move):
             # Do we have an empty cell?
             if curr == 0:
                 # Is this empty cell the move we currently want to make?
-                if m * row + i == move.i and n * column + j == move.j:
+                if m * row + i == move.j and n * column + j == move.i:
                     pass
                 else:
                     valid = True
