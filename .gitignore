@@ -9,6 +9,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Deliverables
+team7_A1.zip
+
 # Distribution / packaging
 .Python
 build/
