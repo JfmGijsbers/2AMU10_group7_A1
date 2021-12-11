@@ -139,6 +139,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return [Move(i, j, value) for i in range(N) for j in range(N) for value in range(1, N+1) if possible(j, i, value)]
 
     def single_possibility(selfself, game_state: GameState) -> List[Move]:
+        pass
         N = game_state.board.N
         m = game_state.board.m
         n = game_state.board.n
