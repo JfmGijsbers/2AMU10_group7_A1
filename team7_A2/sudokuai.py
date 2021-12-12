@@ -27,25 +27,33 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
 
         all_moves = get_all_moves(game_state)
+        if len(all_moves) == 0:
+            log.error("No moves found!")
         # Always have a move proposed
-        self.propose_move(Move(all_moves[0].j, all_moves[0].i, all_moves[0].value))
-        our_move = len(game_state.moves) % 2 == 1
+        try:
+            self.propose_move(all_moves[0])
+        except:
+            log.error("Not proposing any moves")
+            return
+        our_move = len(game_state.moves) % 2 == 0
         root_move = Move(0, 0, 0)
         move = random.choice(all_moves)
         # To make the always proposed move a bit more random (better performance)
         # just sample a random legal move
         while evaluate(game_state, move) == -1:
             move = random.choice(all_moves)
-        self.propose_move(Move(move.j, move.i, move.value))
+        log.info(f"Proposing move {move}")
+        self.propose_move(move)
+        log.info(f"Proposed move {move}")
         root = Node(game_state, root_move, our_move)
         depth = 0
 
         # First, we need to compute layer 1
         root.calculate_children(root, all_moves, our_move)
-        depth = depth + 1
+        depth += 1
         best_move = self.minimax(root, depth, -math.inf, math.inf, our_move).move
-        log.debug(f"Found best move: {str(best_move)}")
-        self.propose_move(Move(best_move.j, best_move.i, best_move.value))
+        log.info(f"Found best move: {str(best_move)}")
+        self.propose_move(best_move)
         our_move = not our_move
 
         # Then, keep computing moves as long as there are
@@ -53,7 +61,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # friendly moves and hostile moves.
 
         kids = root.children
-        while bool(kids):
+        while len(kids) != 0:
             temp_kids = []
             for child in kids:
                 child.update_gamestate()
@@ -64,12 +72,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     temp_kids.append(leaf)
             kids = temp_kids
 
-            depth = depth + 1
+            depth += 1
             # If the last turn is not ours,
             # we don't want to run the minimax for this turn
-            if bool(kids) and not our_move:
+            log.info(f"Length {len(temp_kids)} and our_move is {our_move}")
+            if len(kids) == 0 and not our_move:
+                log.info("Last turn is not ours, stop minimaxing")
+            else:
                 best_move = self.minimax(root, depth, -math.inf, math.inf, our_move).move
-                self.propose_move(Move(best_move.j, best_move.i, best_move.value))
+                log.info(f"Ran depth {depth}, proposing {best_move}")
+                self.propose_move(best_move)
             our_move = not our_move
 
 

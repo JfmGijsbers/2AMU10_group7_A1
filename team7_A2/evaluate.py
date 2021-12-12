@@ -7,7 +7,7 @@ log = logging.getLogger("sudokuai")
 log.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -48,19 +48,36 @@ def check_column(board: SudokuBoard, move: Move) -> bool:
 
 def check_square(board: SudokuBoard, move: Move) -> bool:
     values = []
+    # m = move.i
+    # n = move.j
+    # row = (m // board.m) * m # 3 // 2 * 3 = 
+    # column = (n // board.n) * n
+    # log.info(f"Move {move} has row {row} and column {column}")
+
+    # for m_i in range(row, row + board.m):
+    #     for n_i in range(column, column + board.n):
+    #         #log.info(f"Found value {board.get(m_i, n_i)} at indices [{m_i}, {n_i}]")
+    #         if (m_i == m and n_i == n):
+    #             log.info(f"Found equal indices, [{m}, {n}] for move {move}")
+    #         else:
+    #             values.append(board.get(m_i, n_i))
     m = board.m
     n = board.n
     column = move.i // m
     row = move.j // n
-    # iterate over each row
     for i in range(m):
         # then each column
         for j in range(n):
-            # skip the value of our own move
-            if m * row + i == move.j and n * column + j == move.i:
-                pass
+            curr = board.get( n * column + j, m * row + i)
+            #log.info(f"[{n * column + j},{m*row + i}] has value {curr}")
+            # Do we have an empty cell?
+            if curr == 0:
+                # Is this empty cell the move we currently want to make?
+                if m * row + i == move.j and n * column + j == move.i:
+                    #log.info(f"[{n * column + j}, {m * row + i}] for move {move}")
+                    pass
             else:
-                values.append(board.get(m * row + i, n * column + j))
+                values.append(curr)
     if move.value in values:
         log.debug(f"Move invalid for square: {str(move)}")
         return CHECKS["INVALID"]
@@ -83,11 +100,12 @@ def get_all_moves(game_state: GameState) -> List[Move]:
         for j in range(N):
             # We don't need to look at all possible values if we already know that the cell is occupied
             if not is_empty(game_state.board, i, j):
-                log.debug(f"[{i}, {j}] is not possible")
+                #log.debug(f"[{i}, {j}] is not possible")
                 pass
             else:
                 for value in range(1, N+1):
                     curr = Move(i, j, value)
+                    log.debug(f"Move {curr} has value {evaluate(game_state, curr)}")
                     if evaluate(game_state, curr) == -1:
                         pass
                     else:
@@ -125,5 +143,5 @@ def evaluate(game_state: GameState, move: Move):
             else:
                 if square == CHECKS["SCORING"]:
                     scores += 1
-    log.info(f"Score {str(SCORES[scores])} for move {str(move)}")
+    log.debug(f"Score {str(SCORES[scores])} for move {str(move)}")
     return SCORES[scores]
