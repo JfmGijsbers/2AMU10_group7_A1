@@ -20,8 +20,6 @@ class Node:
         return val
 
     def add_child(self, node):
-        if (node.value == -1):
-            return
         self.children.append(node)
 
     def calculate_children(self, root, all_moves: list, our_move: bool):
@@ -33,7 +31,7 @@ class Node:
                 self.add_child(node)
 
     def update_gamestate(self):
-            self.game_state.board.put(self.move.j, self.move.i, self.move.value)
+            self.game_state.board.put(self.move.i, self.move.j, self.move.value)
             self.game_state.moves.append(self.move)
 
     def has_children(self):
