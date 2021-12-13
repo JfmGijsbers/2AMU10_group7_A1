@@ -103,35 +103,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return node
 
         children = node.children
-
         if is_maximising_player:
-            # maxValue = Node(None, -math.inf, None)
+            # deep copy node, since it has to be a node object to compare
             maxValue = deepcopy(node)
+            # assign -inf value to the node
             maxValue.value = -math.inf
-            #print(f"{node.move}")
-            #print(f"{len(children)} children")
             for child in children:
-                #print(f"proposed child move: {child.move}")
                 value = self.minimax(child, depth - 1, alpha, beta, False)
-                #print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                #print(f"value_move:{value.move}, maxValue_move:{maxValue.move}, value: {value.value}, maxValue: {maxValue.value}, alpha: {alpha}, beta: {beta}")
                 if beta <= alpha:
-                    #print("beta is less or equal to alpha")
                     break
             return maxValue
         else:
-            # minValue = Node(None, math.inf, None)
+            # minimizing player, similar to the maximising player
             minValue = deepcopy(node)
             minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
-                #print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                #print(f"value_move:{value.move}, minValue_move:{minValue.move}, value: {value.value}, minValue: {minValue.value}, alpha: {alpha}, beta: {beta}")
                 if beta <= alpha:
-                    #print("beta is less or equal to alpha")
                     break
             return minValue
