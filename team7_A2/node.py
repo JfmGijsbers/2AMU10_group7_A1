@@ -2,6 +2,10 @@ from competitive_sudoku.sudoku import GameState, Move
 from team7_A2.evaluate import evaluate
 from copy import deepcopy
 
+import logging
+log = logging.getLogger("sudokuai")
+log.setLevel(logging.DEBUG)
+
 class Node:
     def __init__(self, game_state, move, our_move):
         self.game_state = game_state
@@ -26,7 +30,8 @@ class Node:
         for move in all_moves:
             new_game_state = deepcopy(root.game_state)
             new_move = deepcopy(move)
-            node = Node(new_game_state, new_move, our_move)
+            node = Node(new_game_state, new_move, not our_move)
+            #log.info(f"Node with move {move} has value {node.value}")
             if not node.taboo:
                 self.add_child(node)
 

@@ -2,15 +2,7 @@ import copy
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List
 import logging
-import sys
 log = logging.getLogger("sudokuai")
-log.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 CHECKS = {
     "INVALID": 0,
@@ -74,8 +66,10 @@ def check_square(board: SudokuBoard, move: Move) -> bool:
             if curr == 0:
                 # Is this empty cell the move we currently want to make?
                 if m * row + i == move.j and n * column + j == move.i:
-                    #log.info(f"[{n * column + j}, {m * row + i}] for move {move}")
+                    log.debug(f"[{n * column + j}, {m * row + i}] for move {move}")
                     pass
+                else:
+                    values.append(curr)
             else:
                 values.append(curr)
     if move.value in values:
@@ -143,5 +137,5 @@ def evaluate(game_state: GameState, move: Move):
             else:
                 if square == CHECKS["SCORING"]:
                     scores += 1
-    log.debug(f"Score {str(SCORES[scores])} for move {str(move)}")
+    log.info(f"Score {str(SCORES[scores])} for move {str(move)}")
     return SCORES[scores]
