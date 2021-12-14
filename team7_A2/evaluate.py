@@ -40,19 +40,6 @@ def check_column(board: SudokuBoard, move: Move) -> bool:
 
 def check_square(board: SudokuBoard, move: Move) -> bool:
     values = []
-    # m = move.i
-    # n = move.j
-    # row = (m // board.m) * m # 3 // 2 * 3 = 
-    # column = (n // board.n) * n
-    # log.info(f"Move {move} has row {row} and column {column}")
-
-    # for m_i in range(row, row + board.m):
-    #     for n_i in range(column, column + board.n):
-    #         #log.info(f"Found value {board.get(m_i, n_i)} at indices [{m_i}, {n_i}]")
-    #         if (m_i == m and n_i == n):
-    #             log.info(f"Found equal indices, [{m}, {n}] for move {move}")
-    #         else:
-    #             values.append(board.get(m_i, n_i))
     m = board.m
     n = board.n
     column = move.i // m
@@ -61,7 +48,6 @@ def check_square(board: SudokuBoard, move: Move) -> bool:
         # then each column
         for j in range(n):
             curr = board.get( n * column + j, m * row + i)
-            #log.info(f"[{n * column + j},{m*row + i}] has value {curr}")
             # Do we have an empty cell?
             if curr == 0:
                 # Is this empty cell the move we currently want to make?
@@ -107,10 +93,12 @@ def get_all_moves(game_state: GameState) -> List[Move]:
     log.debug(f"get_all_moves returned {str(len(all_moves))} moves")
     return all_moves
 
+
 def is_empty(board: SudokuBoard, m, n):
     log.debug(f"[{m}, {n}] has value {board.get(m,n)}")
     return board.get(m, n) == 0
-    
+
+
 def evaluate(game_state: GameState, move: Move):
     """
     Evaluates a single move and returns a score
