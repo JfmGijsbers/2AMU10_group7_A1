@@ -6,9 +6,11 @@ import logging
 log = logging.getLogger("sudokuai")
 log.setLevel(logging.DEBUG)
 
+
 class Node:
     def __init__(self, game_state, move, our_move):
         self.game_state = game_state
+        self.new_state = self.gamestate(game_state)
         self.children = []
         self.move = move
         self.our_move = our_move
@@ -31,13 +33,14 @@ class Node:
             new_game_state = deepcopy(root.game_state)
             new_move = deepcopy(move)
             node = Node(new_game_state, new_move, not our_move)
-            #log.info(f"Node with move {move} has value {node.value}")
             if not node.taboo:
                 self.add_child(node)
 
-    def update_gamestate(self):
-            self.game_state.board.put(self.move.i, self.move.j, self.move.value)
-            self.game_state.moves.append(self.move)
+    def update_gamestate(self, game_state):
+        new_game_state = deepcopy(game_state)
+        new_game_state.board.put(self.move.i, self.move.j, self.move.value)
+        new_game_state.moves.append(self.move)
+        return new_game_state
 
     def has_children(self):
         return bool(self.children)

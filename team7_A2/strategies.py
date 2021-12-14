@@ -1,8 +1,10 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
-from typing import List
+from typing import List, Set
 from team7_A2.evaluate import evaluate
 import logging
+import numpy as np
 log = logging.getLogger("sudokuai")
+
 
 def is_empty(board: SudokuBoard, m, n):
     log.debug(f"[{m}, {n}] has value {board.get(m,n)}")
@@ -49,38 +51,63 @@ def only_choice(game_state: GameState) -> List[Move]:
     return all_moves
 
 
-def single_possibility(game_state: GameState) -> List[Move]:
+
+def generate_candidates(game_state: GameState) -> tuple(List[Set]):
+    """
+    Generates all candidate values for all empty cells in the sudoku
+    :param game_state:
+    :return: List of size N*N containing a set with candidate values for each cell
+    """
+
     N = game_state.board.N
     m = game_state.board.m
     n = game_state.board.n
 
-    # def calc_sq(i,j):
-    #     pass
-    all_moves = []
-    row_set = [[val for val in range(1, N + 1)] ]* m
-    col_set = [[val for val in range(1, N + 1)]] * n
-    print(row_set)
-    #sq_set[calc_sq(i,j)] = {val for val in range(1, N + 1)}
-    pos_moves = []
+    def calc_box(x, y):
+        i_rsq = x // m
+        i_csq = y // n
+        return np.ravel_multi_index((i_rsq, i_csq), (n, m))
+
+    # initialize sets for all cells
+    all_moves = [set()] * (N*N)
+    row_set = [{val for val in range(1, N + 1)}] * N
+    col_set = [{val for val in range(1, N + 1)}] * N
+    box_set = [{val for val in range(1, N + 1)}] * N
+
+    # empty_cells contains all empty cells
+    empty_cells = []
     for i in range(N):
         for j in range(N):
             if game_state.board.get(i, j) != SudokuBoard.empty:
                 row_set[i].remove(game_state.board.get(i, j))
                 row_set[j].remove(game_state.board.get(i, j))
-                #sq_set[calc_sq(i, j)].remove(game_state.board.get(i,j))
+                sq_set[calc_box(i, j)].remove(game_state.board.get(i, j))
             else:
-                pos_moves.append((i,j))
+                empty_cells.append((i, j))
 
-    for pos_move in pos_moves:
-        i_row = pos_move[0]
-        i_col = pos_move[1]
-        #i_sq = calc_sq(i_row, i_col)
-        pos_vals = row_set[i_row].intersection(col_set[i_col])
-        for pos_val in pos_vals:
-            if not TabooMove(i, j, pos_val) in game_state.taboo_moves:
-                all_moves.append(Move(i_row, i_col, pos_val))
+    for empty_cell in empty_cells:
+        i_row = empty_cell[0]
+        i_col = empty_cell[1]
+        i_box = calc_box(i_row, i_col)
+        can_vals = row_set[i_row].intersection(col_set[i_col]).intersection(box_set[i_box])
+        for can_val in can_vals:
+            if not TabooMove(i_row, i_col, can_val) in game_state.taboo_moves:
+                #all_moves.append(Move(i_row, i_col, pos_val))
+                all_moves[np.ravel_multi_index((i_row, i_col), (N, N))].update(can_val)
+    return (all_moves, row_set, col_set, box_set)
 
-    return all_moves
+def prune_strategy(game_state: GameState, all_moves: List, row_set: List, col_set: List, box_set: List):
+    """
+
+    :param game_state:
+    :param all_moves:
+    :param row_set:
+    :param col_set:
+    :param box_set:
+    :return:
+    """
+
+    pass
 
 
 # class HiddenTwin:
@@ -152,3 +179,61 @@ def single_possibility(game_state: GameState) -> List[Move]:
 
 #         print("Pruned moves by HiddenTwin are: (asymmetric)")
 #         print((set(self.all_moves) ^ set(self.return_moves)))
+
+def last_box():
+    """
+    Checks all legal moves in a box, and if it's the last possiblitiy
+    return the moves that are certain
+    :return:
+    """
+    pass
+
+def last_row():
+    """
+
+    :return:
+    """
+    pass
+
+def last_col():
+    """
+
+    :return:
+    """
+    pass
+
+def hidden_singles():
+    last_col()
+    last_row()
+    last_box()
+    pass
+
+def naked_singles():
+    """
+
+    :return:
+    """
+    pass
+
+def naked_pairs():
+    """
+
+    :return:
+    """
+    pass
+
+def naked_triples():
+    """
+    A Naked Triple is slightly more complicated because it does not always imply three numbers each in three cells.
+
+    Any group of three cells in the same unit that contain IN TOTAL three candidates is a Naked Triple.
+    Each cell can have two or three numbers, as long as in combination all three cells have only three numbers.
+    When this happens, the three candidates can be removed from all other cells in the same unit.
+
+    (123) (123) (123) - {3/3/3} (in terms of candidates per cell)
+    (123) (123) (12) - {3/3/2} (or some combination thereof)
+    (123) (12) (23) - {3/2/2/}
+    (12) (23) (13) - {2/2/2}
+    :return:
+    """
+    pass
