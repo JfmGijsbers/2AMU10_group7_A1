@@ -49,27 +49,33 @@ def hidden_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
     :return:
     """
     N = n*m
-    for row in range(N):
-        temp_list = []
-        # make for every row a value list
-        for col in range(N):
-            temp_list = temp_list + list(little_num[coo2ind(row, col, N)])
-        # return the values that only occur once
-        only_once = get_single_number(temp_list)
-        # update little_num by taking the intersection if it contains the number that only occurs once
-        for col in range(N):
-            if little_num[coo2ind(row, col, N)].intersection(only_once):
-                little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
-    return little_num
+    def add_val(dic: dict, val: int, r: int, c: int, val_cell: Set[int]):
+        if str(val) not in dic:
+            dic[str(val)] = [1, [(r, c)]]
+        else:
+            dic[str(val)] = [dic[str(val)][0] + 1, dic[str(val)][1].append((r, c)), dic[str(val)][2].append(val_cell)]
+        return dic
 
     for row in range(N):
-        cand_list = []
-        # get coo and sets that are of size larger than 4
+        temp_dic = {}
+        pairs_list = []
+        triples_list = []
+        # assign every possible move to a value
         for col in range(N):
-            if len(little_num[coo2ind(row, col, N)]) > 2:
-                cand_list.append(((row, col), little_num[coo2ind(row, col, N)]))
-        little_num = prune_hidden(little_num, check_hidden(cand_list, 2), m, n, 2)
-        little_num = prune_hidden(little_num, check_hidden(cand_list, 3), m, n, 3)
+            for val in list(little_num[coo2ind(row, col, N)]):
+                temp_dic = add_val(temp_dic, val, row, col, little_num[coo2ind(row, col, N)])
+        # return the values that only occur once
+        for item in temp_dic.items():
+            val = int(item[0])
+            count = item[1][0]
+            cells = item[1][1]
+            cell_val = item[1][2]
+            if count == 2:
+                pairs_list.append([val, cells, cell_val])
+            if count == 2 or count==3:
+                triples_list.append([val, cells, cell_val])
+        little_num = prune_hidden(little_num, check_hidden(pairs_list, 2), m, n, 2)
+        little_num = prune_hidden(little_num, check_hidden(triples_list, 3), m, n, 3)
 
     return little_num
 
@@ -115,22 +121,38 @@ def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     return little_num
 
 
-def check_hidden(arr: List[Tuple[Tuple[int, int],Set[int]]], r: int) -> List[Tuple[Tuple[int, int], Set[int]]]:
+def check_hidden(arr: List[List[int, List[Tuple[int, int]], List[Set[int]]]], r: int) -> List[Tuple[Set[Tuple[int, int]], Set[int]]]:
     """
 
     :param arr:
     :param r:
     :return:
     """
+
+    # arr = [val, [(x,y), (x,y)], [{vals}, {vals}]]
     combis = combinations(arr, r)
     all_combis = []
     for combi in combis:
-        temp_set = combi[0][1].copy()
-        for i in range(len(combi[0])):
-            temp_set.update(combi[0][i][1])
-        if len(temp_set) == r:
-            for i in range(len(combi[0])):
-                all_combis.append(combi[0])
+        val_set = set()
+        for i in range(len(combi)):
+            val_set.update(combi[i][0])
+
+        all_cells = []
+        for i in range(len(combi)):
+            for j in range(len(combi[i][1])):
+                row = combi[i][1][j][0]
+                col = combi[i][1][j][1]
+                cell_vals = combi[i][1][j][2]
+                all_cells.append(((row, col), cell_vals.intersection(val_set)))
+
+        check_set = set()
+        cells_coo = set()
+        for i in range(len(all_cells)):
+            check_set.update(all_cells[i][1])
+            cells_coo.update(all_cells[i][0])
+        # cells_coo = list(cells_coo)
+        if len(check_set) == r:
+            all_combis.append((cells_coo, val_set))
     return all_combis
 
 
@@ -142,27 +164,26 @@ def prune_hidden(little_num: List[Set[int]], arr: List[Tuple[Tuple[int, int],Set
     :return:
     """
     N = m*n
-    for cell in arr:
-        row = cell[0][0]
-        col = cell[0][1]
-        val = cell[1]
+    for cells_val in arr:
+        cells = cells_val[0]
+        val = cells_val[1]
 
         for i in range(N):
-            # remove combi out of row
-            temp_set = little_num[coo2ind(row, i, N)].copy()
-            temp_set.update(val)
-            if len(temp_set) != r:
+            if (row, i) not in cells:
+                # remove combi out of row
+                temp_set = little_num[coo2ind(row, i, N)].copy()
+                temp_set.update(val)
                 little_num[coo2ind(row, i, N)].difference_update(val)
 
-            # remove combi out of col
-            temp_set = little_num[coo2ind(i, col, N)].copy()
-            temp_set.update(val)
-            if len(temp_set) != r:
+            if (row, i) not in cells:
+                # remove combi out of col
+                temp_set = little_num[coo2ind(i, col, N)].copy()
+                temp_set.update(val)
                 little_num[coo2ind(i, col, N)].difference_update(val)
 
-            # remove combi out of box
-            temp_set = little_num[coo2ind(i, col, N)].copy()
-            temp_set.update(val)
-            if len(temp_set) != r:
+            if (row, i) not in cells:
+                # remove combi out of box
+                temp_set = little_num[coo2ind(i, col, N)].copy()
+                temp_set.update(val)
                 little_num[coo2ind(i, col, N)].difference_update(val)
     return little_num

@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 
 def calc_box(index_row, index_col, m, n):

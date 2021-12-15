@@ -36,19 +36,22 @@ def only_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     Checks all legal values in a box and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
     :param little_num: list of all candidate values
-    :param N: number of rows and columns
+    :param m: number of col boxes, number of cols box
+    :param n: number of col boxes, number of rows box
     :return: pruned version of little_num
     """
     N = n*m
     for box in range(N):
         coo_box = []
         # Get for every box all corresponding coordinates
-        # coo contains coordinates of respective box
+        # coo contains coordinates of respective
         for coo in box2coo(box, n, m):
             coo_box = coo_box + list(little_num[coo2ind(coo[0], coo[1], N)])
-            only_once = get_single_number(coo_box)
-            if little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once):
-                little_num[coo2ind(coo[0], coo[1], N)] = little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)
+        only_once = get_single_number(coo_box)
+        #if bool(little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)) and len(little_num[coo2ind(coo[0], coo[1], N)]) != 1:
+        if bool(little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)):
+            # print("Pruned Hidden_single Square")
+            little_num[coo2ind(coo[0], coo[1], N)] = little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)
     return little_num
 
 
@@ -61,6 +64,7 @@ def only_row(little_num: List[Set[int]], N: int) -> List[Set[int]]:
     :return: pruned version of little_num
     TODO als we tijd hebben kunnen we row en col samenvoegen in één functie
     """
+
     for row in range(N):
         temp_list = []
         # make for every row a value list
@@ -70,7 +74,9 @@ def only_row(little_num: List[Set[int]], N: int) -> List[Set[int]]:
         only_once = get_single_number(temp_list)
         # update little_num by taking the intersection if it contains the number that only occurs once
         for col in range(N):
-            if little_num[coo2ind(row, col, N)].intersection(only_once):
+            #if bool(little_num[coo2ind(row, col, N)].intersection(only_once)) and len(little_num[coo2ind(row, col, N)]) != 1:
+            if bool(little_num[coo2ind(row, col, N)].intersection(only_once)):
+                # print("Pruned Hidden_single Row")
                 little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
     return little_num
 
@@ -92,6 +98,8 @@ def only_col(little_num: List[Set[int]], N: int) -> List[Set[int]]:
         only_once = get_single_number(temp_list)
         # update little_num by taking the intersection if it contains the number that only occurs once
         for row in range(N):
-            if little_num[coo2ind(row, col, N)].intersection(only_once):
+            #if bool(little_num[coo2ind(row, col, N)].intersection(only_once)) and len(little_num[coo2ind(row, col, N)]) == 1:
+            if bool(little_num[coo2ind(row, col, N)].intersection(only_once)):
+                # print("Pruned Hidden_single Col")
                 little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
     return little_num

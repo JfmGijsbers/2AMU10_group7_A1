@@ -4,7 +4,7 @@ import logging
 from team7_A2.auxiliary import coo2ind, calc_box, ind2coo
 from team7_A2.hidden_singles import hidden_singles
 from team7_A2.naked_pairs_triples import naked_pairs_triples
-from team7_A2.hidden_pairs_triples import hidden_pairs_triples
+#from team7_A2.hidden_pairs_triples import hidden_pairs_triples
 from team7_A2.box_line_reduction import box_line_reduction
 from team7_A2.pointing_pairs import pointing_pairs
 
@@ -49,17 +49,24 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
 
     # generate all legal moves, all candidate values per cell, and sets of placed numbers for row, col and box
     all_moves, little_num, row_set, col_set, box_set = generate_candidates(game_state)
+    # for move in all_moves:
+    #     print(move)
+    # print(little_num)
 
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
-        #little_num = hidden_singles(game_state, little_num)
-        #little_num = naked_pairs_triples(game_state, little_num)
+        little_num = hidden_singles(game_state, little_num)
+        little_num = naked_pairs_triples(game_state, little_num)
         #little_num = hidden_pairs_triples(game_state, little_num)
         #little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
         #little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
-    all_moves = update_all_moves(little_num, game_state.N)
+    all_moves, pos_taboo, not_taboo = update_all_moves(little_num, game_state.board.N)
+    # if len(all_moves)==0:
+    #     return pos_taboo
+    # else:
+    #     return all_moves
     return all_moves
 
 
@@ -92,12 +99,19 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
 
     # initialize all_moves and little_num
     all_moves = []
-    little_num = [set()] * (N*N)
     # initialize sets for all row, col and boxes containing sets with all
     # possible values for each cell, i.e. range(1, N+1)
-    row_set = [{val for val in range(1, N + 1)}] * N
-    col_set = [{val for val in range(1, N + 1)}] * N
-    box_set = [{val for val in range(1, N + 1)}] * N
+    mk_num_arr = lambda num: set(range(1, N + 1))
+    row_set = []
+    col_set = []
+    box_set = []
+    little_num = []
+    for i in range(N):
+        row_set.append(mk_num_arr(N))
+        col_set.append(mk_num_arr(N))
+        box_set.append(mk_num_arr(N))
+    for i in range(N*N):
+        little_num.append(set())
 
     # empty_cells contains all empty cells
     empty_cells = []
@@ -105,12 +119,23 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
     # check each cell if it's empty or not
     # if it's empty, add it to the empty cells
     # if it's not empty, remove the value of the cell from the respective row,col,box set
+
+    # print(row_set)
+    # print(col_set)
+    # print(box_set)
     for i in range(N):
         for j in range(N):
             if game_state.board.get(i, j) != SudokuBoard.empty:
+                # print(f"row: {i}, col: {j}, val: {game_state.board.get(i, j)}")
+                # print(f"before row: {row_set}")
+                # print(f"before col: {col_set}")
+                # print(f"before sq: {box_set}")
                 row_set[i].remove(game_state.board.get(i, j))
-                row_set[j].remove(game_state.board.get(i, j))
+                col_set[j].remove(game_state.board.get(i, j))
                 box_set[calc_box(i, j, m, n)].remove(game_state.board.get(i, j))
+                # print(f"after row: {row_set}")
+                # print(f"after col: {col_set}")
+                # print(f"after sq: {box_set}")
             else:
                 empty_cells.append((i, j))
 
@@ -121,24 +146,48 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
         i_row = empty_cell[0]
         i_col = empty_cell[1]
         i_box = calc_box(i_row, i_col, m, n)
+        # print("hiiier")
+        # print(box_set[i_box])
+        # print(row_set[i_row])
+        # print(col_set[i_col])
         can_vals = row_set[i_row].intersection(col_set[i_col]).intersection(box_set[i_box])
+        # print(can_vals)
         for can_val in can_vals:
             if not TabooMove(i_row, i_col, can_val) in game_state.taboo_moves:
+                # print("hiiieeer2")
+                # print(can_val)
+                # print(little_num)
                 little_num[coo2ind(i_row, i_col, N)].add(can_val)
+                # print(little_num)
                 all_moves.append(Move(i_row, i_col, can_val))
+    # print(all_moves)
+    # print(little_num)
+    # print(row_set)
+    # print(col_set)
+    # print(box_set)
     return all_moves, little_num, row_set, col_set, box_set
 
 
-def update_all_moves(little_num: List[Set[int]], N: int) -> List[Move]:
+def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], List[Move], List[Move]]:
     """
     Convert little_num into a list of Move objects
     :param little_num: N^2 size list corresponding to each cell in the sudoku, containing sets for all possible values
     :return: list of possible Move objects
     """
     all_moves = []
+    pos_taboo = []
+    not_taboo = []
     for i in range(N*N):
-        if len(little_num[i]) > 0:
+        if len(little_num[i]) >= 1:
             row, col = ind2coo(i, N)
             for val in little_num[i]:
                 all_moves.append(Move(row, col, val))
-    return all_moves
+            if len(little_num[i]) == 1:
+                row, col = ind2coo(i, N)
+                for val in little_num[i]:
+                    not_taboo.append(Move(row, col, val))
+            elif len(little_num[i]) > 1:
+                row, col = ind2coo(i, N)
+                for val in little_num[i]:
+                    pos_taboo.append(Move(row, col, val))
+    return all_moves, pos_taboo, not_taboo

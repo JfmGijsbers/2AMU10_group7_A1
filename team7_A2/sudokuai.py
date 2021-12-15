@@ -5,12 +5,12 @@
 import random
 import time
 import math
-from typing import List
+from typing import List, Union
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team7_A2.evaluate import evaluate
 from team7_A2.node import Node
-from team7_A2.strategies import get_strategy
+from team7_A2.strategies import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
 import sys
@@ -49,14 +49,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param game_state:
         :return:
         """
-
         our_turn = True
         # determine which strategies
-        #strategies = get_strategy(game_state, our_turn)
-
-        # all_moves = get_all_moves2(game_state, strategies)
+        strategies = get_strategy(game_state)
+        all_moves = get_all_moves(game_state, strategies)
         #all_moves = self.pick_strategy(game_state, our_turn)
-        all_moves = get_strategy(game_state)
+        # all_moves = get_strategy(game_state)
         if len(all_moves) == 0:
             log.error("No moves found!")
 
@@ -81,11 +79,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         depth = 0
 
         # First, we need to compute layer 1
-        root.calculate_children(root, all_moves, our_turn)
-        depth += 1
-        best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn).move
-        log.info(f"Found best move: {str(best_move)}")
-        self.propose_move(best_move)
+        depth = depth + 1
+        root.calculate_children(root, all_moves, our_turn, depth)
+        best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn)
+        log.info(f"Found best move: {str(best_move.root_move)}")
+
+        self.propose_move(best_move.root_move)
 
         our_turn = not our_turn
  
@@ -96,27 +95,29 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         kids = root.children
         while len(kids) != 0:
             temp_kids = []
+            depth += 1
             for child in kids:
-                new_all_moves = get_strategy(child.new_game_state)
-                child.calculate_children(child, new_all_moves, our_turn)
+                strategies = get_strategy(child.new_game_state)
+                new_all_moves = get_all_moves(child.new_game_state, strategies)
+                child.calculate_children(child, new_all_moves, our_turn, depth)
 
                 for leaf in child.children:
                     temp_kids.append(leaf)
             kids = temp_kids
             log.info(f"Found {len(temp_kids)} moves for {'us' if our_turn else 'them'} ")
-            depth += 1
 
             # If the last turn is not ours,
             # we don't want to run the minimax for this turn
             if len(kids) == 0:
                 log.critical("Last turn, stop minimaxing")
             else:
-                best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn).move
-                log.info(f"Ran depth {depth}, proposing {best_move}")
-                self.propose_move(best_move)
+                best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn)
+                log.info(f"Ran depth {depth}, proposing {best_move.root_move}")
+                self.propose_move(best_move.root_move)
             our_turn = not our_turn
 
-    def minimax(self, node, depth, alpha, beta, is_maximising_player) -> Node:
+    def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
+                is_maximising_player: bool) -> Node:
         """
         Recursively evaluates nodes in game tree and returns the proposed best node
         proposed best node is the node that has either the maximum or the mimimum value in the terminal state
@@ -141,8 +142,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 value = self.minimax(child, depth - 1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                if beta <= alpha:
-                    break
+                # if beta <= alpha:
+                #     break
             return maxValue
         else:
             # minimizing player, similar to the maximising player
@@ -152,6 +153,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 value = self.minimax(child, depth - 1, alpha, beta, True)
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                if beta <= alpha:
-                    break
+                # if beta <= alpha:
+                #     break
             return minValue
