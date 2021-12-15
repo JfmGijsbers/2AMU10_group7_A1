@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-from typing  import List, Tuple
+from typing import List, Tuple
 
 
 def calc_box(index_row, index_col, m, n):
@@ -49,7 +49,7 @@ def coo2ind(index_row: int, index_col: int, N: int) -> int:
     return np.ravel_multi_index((index_row, index_col), (N, N))
 
 
-def get_single_number(arr: List[int]) -> List[int]:
+def get_single_number(arr: List[int]) -> Set[int]:
     """
     returns the values that only occur once in the list
     :param arr: list with integers

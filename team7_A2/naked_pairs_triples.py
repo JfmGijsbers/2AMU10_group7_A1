@@ -46,8 +46,6 @@ def naked_pairs_triples(game_state: GameState, little_num: List[Set[int]]) -> Li
     return little_num
 
 
-
-
 def naked_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
     """
 
