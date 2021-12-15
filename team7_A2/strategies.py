@@ -1,12 +1,12 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from auxiliary import coo2ind, calc_box, ind2coo
-from hidden_singles import hidden_singles
-from naked_pairs_triples import naked_pairs_triples
-from hidden_pairs_triples import hidden_pairs_triples
-from box_line_reduction import box_line_reduction
-from pointing_pairs import pointing_pairs
+from team7_A2.auxiliary import coo2ind, calc_box, ind2coo
+from team7_A2.hidden_singles import hidden_singles
+from team7_A2.naked_pairs_triples import naked_pairs_triples
+from team7_A2.hidden_pairs_triples import hidden_pairs_triples
+from team7_A2.box_line_reduction import box_line_reduction
+from team7_A2.pointing_pairs import pointing_pairs
 
 log = logging.getLogger("sudokuai")
 
@@ -20,7 +20,7 @@ def get_strategy(game_state: GameState):
     return True
 
 
-def get_all_moves(game_state: GameState, strategies: bool) -> list[Move]:
+def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     """
     Get all moves based on the sudoku solving strategies by:
     1. generate_candidates(game_state) - obtain all legal moves (all_moves), all legal values per cell (little_num,
@@ -55,8 +55,8 @@ def get_all_moves(game_state: GameState, strategies: bool) -> list[Move]:
         little_num = hidden_singles(game_state, little_num)
         little_num = naked_pairs_triples(game_state, little_num)
         little_num = hidden_pairs_triples(game_state, little_num)
-        little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
-        little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
+        #little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
+        #little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
     all_moves = update_all_moves(little_num, game_state.N)

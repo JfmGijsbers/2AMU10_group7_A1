@@ -1,4 +1,4 @@
-from auxiliary import coo2ind, box2coo
+from team7_A2.auxiliary import coo2ind, box2coo
 from competitive_sudoku.sudoku import GameState
 from typing import List, Set, Tuple
 from itertools import combinations
@@ -22,4 +22,8 @@ def box_line_reduction(game_state: GameState, little_num: List[Set[int]], row_se
     :param box_set: List[Set], size: N, contains the placed numbers of each box
     :return: updated little_num
     """
+    print(little_num)
+    print(row_set)
+    print(col_set)
+    print(box_set)
     pass
