@@ -10,7 +10,7 @@ from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team7_A2.evaluate import evaluate, get_all_moves
 from team7_A2.node import Node
-from team7_A2.strategies import only_choice
+from team7_A2.strategies import only_choice, get_strategy
 from copy import deepcopy
 import logging
 import sys
@@ -54,7 +54,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         """
 
         our_turn = True
-        all_moves = self.pick_strategy(game_state, our_turn)
+        # determine which strategies
+        #strategies = get_strategy(game_state, our_turn)
+
+        # all_moves = get_all_moves2(game_state, strategies)
+        #all_moves = self.pick_strategy(game_state, our_turn)
+        all_moves = get_all_moves(game_state)
         if len(all_moves) == 0:
             log.error("No moves found!")
 
@@ -113,7 +118,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 log.info(f"Ran depth {depth}, proposing {best_move}")
                 self.propose_move(best_move)
             our_turn = not our_turn
-
 
     def minimax(self, node, depth, alpha, beta, is_maximising_player) -> Node:
         """

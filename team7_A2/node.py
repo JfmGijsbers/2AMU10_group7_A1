@@ -9,10 +9,10 @@ log.setLevel(logging.DEBUG)
 
 class Node:
     def __init__(self, game_state, move, our_move):
-        self.game_state = game_state
-        self.new_state = self.gamestate(game_state)
-        self.children = []
         self.move = move
+        self.game_state = game_state
+        self.new_game_state = self.update_gamestate(game_state)
+        self.children = []
         self.our_move = our_move
         self.taboo = False
         self.value = self.calc_value()
