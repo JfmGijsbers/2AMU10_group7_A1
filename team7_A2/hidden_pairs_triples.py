@@ -72,7 +72,7 @@ def hidden_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
     N = n*m
     for row in range(N):
         cand_list = []
-        # get coo and sets that are of size 2 and 3
+        # get coo and sets that are of size larger than 4
         for col in range(N):
             if len(little_num[coo2ind(row, col, N)]) > 2:
                 cand_list.append(((row, col), little_num[coo2ind(row, col, N)]))
@@ -133,7 +133,6 @@ def prune_hidden(little_num: List[Set[int]], arr: List[Tuple[Tuple[int, int],Set
         row = cell[0][0]
         col = cell[0][1]
         val = cell[1]
-
 
         for i in range(N):
             # remove combi out of row

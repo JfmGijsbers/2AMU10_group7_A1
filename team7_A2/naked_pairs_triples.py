@@ -60,7 +60,7 @@ def naked_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
         for coo in box2coo(box, n, m):
             if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
                 pairs_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
-            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
+            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2 or len(little_num[coo2ind(coo[0], coo[1], N)]) == 3:
                 triples_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
         little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
         little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)
@@ -80,11 +80,10 @@ def naked_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
         for col in range(N):
             if len(little_num[coo2ind(row, col, N)]) == 2:
                 pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
-            if len(little_num[coo2ind(row, col, N)]) == 2:
+            if len(little_num[coo2ind(row, col, N)]) == 2 or len(little_num[coo2ind(row, col, N)]) == 3:
                 triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
         little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
         little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)
-
     return little_num
 
 
@@ -101,7 +100,7 @@ def naked_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
         for row in range(N):
             if len(little_num[coo2ind(row, col, N)]) == 2:
                 pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
-            if len(little_num[coo2ind(row, col, N)]) == 2:
+            if len(little_num[coo2ind(row, col, N)]) == 2 or len(little_num[coo2ind(row, col, N)]) == 3:
                 triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
         little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
         little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)

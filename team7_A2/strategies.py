@@ -1,10 +1,12 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from auxiliary import coo2ind, calc_box
+from auxiliary import coo2ind, calc_box, ind2coo
 from hidden_singles import hidden_singles
 from naked_pairs_triples import naked_pairs_triples
 from hidden_pairs_triples import hidden_pairs_triples
+from box_line_reduction import box_line_reduction
+from pointing_pairs import pointing_pairs
 
 log = logging.getLogger("sudokuai")
 
@@ -50,14 +52,14 @@ def get_all_moves(game_state: GameState, strategies: bool) -> list[Move]:
 
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
-        all_moves, little_num, row_set, col_set, box_set = hidden_singles(game_state, little_num)
-        all_moves, little_num, row_set, col_set, box_set = naked_pairs_triples(all_moves, little_num, row_set, col_set, box_set)
-        all_moves, little_num, row_set, col_set, box_set = hidden_pairs_triples(all_moves, little_num, row_set, col_set, box_set)
-        # all_moves, row_set, col_set, box_set = pointing_pairs(game_state, all_moves, row_set, col_set, box_set)
-        # all_moves, row_set, col_set, box_set = box_line_reduc(game_state, all_moves, row_set, col_set, box_set)
+        little_num = hidden_singles(game_state, little_num)
+        little_num = naked_pairs_triples(game_state, little_num)
+        little_num = hidden_pairs_triples(game_state, little_num)
+        little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
+        little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
-    all_moves = update_all_moves(little_num)
+    all_moves = update_all_moves(little_num, game_state.N)
     return all_moves
 
 
@@ -127,10 +129,16 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
     return all_moves, little_num, row_set, col_set, box_set
 
 
-def update_all_moves(little_num: List[Set[int]]) -> List[Move]:
+def update_all_moves(little_num: List[Set[int]], N: int) -> List[Move]:
     """
     Convert little_num into a list of Move objects
     :param little_num: N^2 size list corresponding to each cell in the sudoku, containing sets for all possible values
     :return: list of possible Move objects
     """
-    pass
+    all_moves = []
+    for i in range(N*N):
+        if len(little_num[i]) > 0:
+            row, col = ind2coo(i, N)
+            for val in little_num[i]:
+                all_moves.append(Move(row, col, val))
+    return all_moves
