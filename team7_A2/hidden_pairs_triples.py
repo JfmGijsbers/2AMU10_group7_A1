@@ -43,33 +43,25 @@ def hidden_pairs_triples(game_state: GameState, little_num):
     return little_num
 
 
-def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
-    """
-    Checks all legal moves in a box, and if it's the last possiblitiy
-    return the moves that are certain
-
-    :return:
-    """
-    N = n*m
-    for box in range(N):
-        pairs_list = []
-        triples_list = []
-        for coo in box2coo(box, n, m):
-            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
-                pairs_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
-            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
-                triples_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
-        little_num = prune_hidden(little_num, check_hidden(pairs_list, 2), m, n, 2)
-        little_num = prune_hidden(little_num, check_hidden(pairs_list, 3), m, n, 3)
-    return little_num
-
-
 def hidden_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
     """
 
     :return:
     """
     N = n*m
+    for row in range(N):
+        temp_list = []
+        # make for every row a value list
+        for col in range(N):
+            temp_list = temp_list + list(little_num[coo2ind(row, col, N)])
+        # return the values that only occur once
+        only_once = get_single_number(temp_list)
+        # update little_num by taking the intersection if it contains the number that only occurs once
+        for col in range(N):
+            if little_num[coo2ind(row, col, N)].intersection(only_once):
+                little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
+    return little_num
+
     for row in range(N):
         cand_list = []
         # get coo and sets that are of size larger than 4
@@ -97,6 +89,27 @@ def hidden_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
                 pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
             if len(little_num[coo2ind(row, col, N)]) == 2:
                 triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+        little_num = prune_hidden(little_num, check_hidden(pairs_list, 2), m, n, 2)
+        little_num = prune_hidden(little_num, check_hidden(pairs_list, 3), m, n, 3)
+    return little_num
+
+
+def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
+    """
+    Checks all legal moves in a box, and if it's the last possiblitiy
+    return the moves that are certain
+
+    :return:
+    """
+    N = n*m
+    for box in range(N):
+        pairs_list = []
+        triples_list = []
+        for coo in box2coo(box, n, m):
+            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
+                pairs_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
+            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
+                triples_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
         little_num = prune_hidden(little_num, check_hidden(pairs_list, 2), m, n, 2)
         little_num = prune_hidden(little_num, check_hidden(pairs_list, 3), m, n, 3)
     return little_num

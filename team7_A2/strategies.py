@@ -120,7 +120,7 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
     for empty_cell in empty_cells:
         i_row = empty_cell[0]
         i_col = empty_cell[1]
-        i_box = calc_box(i_row, i_col)
+        i_box = calc_box(i_row, i_col, m, n)
         can_vals = row_set[i_row].intersection(col_set[i_col]).intersection(box_set[i_box])
         for can_val in can_vals:
             if not TabooMove(i_row, i_col, can_val) in game_state.taboo_moves:
