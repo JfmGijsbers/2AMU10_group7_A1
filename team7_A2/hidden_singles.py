@@ -31,7 +31,7 @@ def hidden_singles(game_state: GameState, little_num: List[Set]) -> List[Set]:
     return little_num
 
 
-def only_box(little_num, m, n):
+def only_box(little_num, m, n) -> List[Set]:
     """
     Checks all legal values in a box and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
@@ -52,7 +52,7 @@ def only_box(little_num, m, n):
     return little_num
 
 
-def only_row(little_num, N):
+def only_row(little_num, N) -> List[Set]:
     """
     Checks all legal values in a row and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
@@ -76,7 +76,7 @@ def only_row(little_num, N):
     return little_num
 
 
-def only_col(little_num, n, m):
+def only_col(little_num, n, m) -> List[Set]:
     """
     Checks all legal values in a column and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell

@@ -3,8 +3,8 @@ from typing import List, Set, Tuple
 import logging
 from auxiliary import coo2ind, calc_box
 from hidden_singles import hidden_singles
-from naked_pairs_triplets import naked_pairs_triplets
-from hidden_pairs_triplets import hidden_pairs_triplets
+from naked_pairs_triples import naked_pairs_triples
+from hidden_pairs_triples import hidden_pairs_triples
 
 log = logging.getLogger("sudokuai")
 
@@ -51,8 +51,8 @@ def get_all_moves(game_state: GameState, strategies: bool) -> list[Move]:
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         all_moves, little_num, row_set, col_set, box_set = hidden_singles(game_state, little_num)
-        all_moves, little_num, row_set, col_set, box_set = naked_pairs_triplets(all_moves, little_num, row_set, col_set, box_set)
-        all_moves, little_num, row_set, col_set, box_set = hidden_pairs_triplets(all_moves, little_num, row_set, col_set, box_set)
+        all_moves, little_num, row_set, col_set, box_set = naked_pairs_triples(all_moves, little_num, row_set, col_set, box_set)
+        all_moves, little_num, row_set, col_set, box_set = hidden_pairs_triples(all_moves, little_num, row_set, col_set, box_set)
         # all_moves, row_set, col_set, box_set = pointing_pairs(game_state, all_moves, row_set, col_set, box_set)
         # all_moves, row_set, col_set, box_set = box_line_reduc(game_state, all_moves, row_set, col_set, box_set)
 
