@@ -17,7 +17,6 @@ def get_strategy(game_state: GameState):
     :param game_state:
     :return:
     """
-    # TODO implement strategy choosing
     return True
 
 

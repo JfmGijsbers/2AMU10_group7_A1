@@ -92,11 +92,7 @@ def hidden_row(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
 
 def hidden_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
-
-    :param little_num:
-    :param m:
-    :param n:
-    :return:
+    checks if it's a valid hidden pair/triples
     """
     N = n*m
     for col in range(N):
@@ -124,17 +120,7 @@ def hidden_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
 
 def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
-
-    :param little_num:
-    :param m:
-    :param n:
-    :return:
-    """
-    """
-    Checks all legal moves in a box, and if it's the last possiblitiy
-    return the moves that are certain
-
-    :return:
+    checks if it's a valid hidden pair/triples
     """
     N = n*m
     for box in range(N):
@@ -152,10 +138,7 @@ def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
 
 def check_hidden(arr: List[List[int, List[Tuple[int, int]], List[Set[int]]]], r: int) -> List[Tuple[Set[Tuple[int, int]], Set[int]]]:
     """
-
-    :param arr:
-    :param r:
-    :return:
+    checks if it's a valid hidden pair/triples
     """
 
     # arr = [val, [(x,y), (x,y)], [{vals}, {vals}]]
