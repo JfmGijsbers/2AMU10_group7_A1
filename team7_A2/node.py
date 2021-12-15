@@ -8,6 +8,7 @@ log.setLevel(logging.DEBUG)
 
 class Node:
     def __init__(self, game_state, move, our_move):
+        self.root_move = None
         self.game_state = game_state
         self.children = []
         self.move = move
@@ -26,13 +27,19 @@ class Node:
     def add_child(self, node):
         self.children.append(node)
 
-    def calculate_children(self, root, all_moves: list, our_move: bool):
+    def calculate_children(self, root, all_moves: list, our_move: bool, depth = 2):
         for move in all_moves:
             new_game_state = deepcopy(root.game_state)
             new_move = deepcopy(move)
             node = Node(new_game_state, new_move, not our_move)
             #log.info(f"Node with move {move} has value {node.value}")
             if not node.taboo:
+                if depth == 1:
+                    log.critical(f"Found root move {root.move}")
+                    node.root_move = new_move
+                else:
+                    log.critical(f"Copied root {root.root_move}")
+                    node.root_move = root.root_move
                 self.add_child(node)
 
     def update_gamestate(self):

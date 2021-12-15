@@ -37,7 +37,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
     def pick_strategy(self, game_state: GameState, our_move):
         if our_move:
-            return only_choice(game_state)
+            moves = only_choice(game_state)
+            if len(moves) == 0:
+                moves = get_all_moves(game_state)
+            
+            return moves
         else:
             return get_all_moves(game_state)
 
@@ -78,14 +82,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # Then, keep computing moves as long as there are
         # moves to make, alternating between
         # friendly moves and hostile moves.
-
         kids = root.children
         while len(kids) != 0:
             temp_kids = []
             for child in kids:
                 child.update_gamestate()
                 new_all_moves = self.pick_strategy(child.game_state, our_move)
-                child.calculate_children(child, new_all_moves, our_move)
+                # if depth==1:
+                #     new_all_moves = self.pick_strategy(child.game_state, our_move, depth)
+                # else:
+                #     new_all_moves = self.pick_strategy(child.game_state, our_move)
+                child.calculate_children(child, new_all_moves, our_move, depth)
 
                 for leaf in child.children:
                     temp_kids.append(leaf)
@@ -98,7 +105,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             if len(kids) == 0:
                 log.critical("Last turn, stop minimaxing")
             else:
-                best_move = self.minimax(root, depth, -math.inf, math.inf, our_move).move
+                best_move = self.minimax(root, depth, -math.inf, math.inf, our_move).root_move
                 log.info(f"Ran depth {depth}, proposing {best_move}")
                 self.propose_move(best_move)
             our_move = not our_move
