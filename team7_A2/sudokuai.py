@@ -3,9 +3,8 @@
 #  https://www.gnu.org/licenses/gpl-3.0.txt)
 
 import random
-import time
 import math
-from typing import List, Union
+from typing import  Union
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team7_A2.evaluate import evaluate
@@ -13,16 +12,15 @@ from team7_A2.node import Node
 from team7_A2.strategies import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
-import sys
 
 log = logging.getLogger("sudokuai")
 log.setLevel(logging.DEBUG)
 
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.CRITICAL)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
+# handler = logging.StreamHandler(sys.stdout)
+# handler.setLevel(logging.CRITICAL)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# log.addHandler(handler)
 
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -31,7 +29,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
 
     def __init__(self):
-        self.highest_value = -1
         super().__init__()
 
     def pick_strategy(self, game_state: GameState, our_move):
@@ -53,8 +50,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # determine which strategies
         strategies = get_strategy(game_state)
         all_moves = get_all_moves(game_state, strategies)
-        #all_moves = self.pick_strategy(game_state, our_turn)
-        # all_moves = get_strategy(game_state)
         if len(all_moves) == 0:
             log.error("No moves found!")
 
@@ -85,13 +80,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         log.info(f"Found best move: {str(best_move.root_move)}")
 
         self.propose_move(best_move.root_move)
-
         our_turn = not our_turn
  
         # Then, keep computing moves as long as there are
         # moves to make, alternating between
         # friendly moves and hostile moves.
-
         kids = root.children
         while len(kids) != 0:
             temp_kids = []
@@ -142,8 +135,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 value = self.minimax(child, depth - 1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
                 alpha = max(maxValue.value, alpha)
-                # if beta <= alpha:
-                #     break
+                if beta <= alpha:
+                    break
             return maxValue
         else:
             # minimizing player, similar to the maximising player
@@ -153,6 +146,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 value = self.minimax(child, depth - 1, alpha, beta, True)
                 minValue = min([minValue, value], key=lambda state: state.value)
                 beta = min(minValue.value, beta)
-                # if beta <= alpha:
-                #     break
+                if beta <= alpha:
+                    break
             return minValue

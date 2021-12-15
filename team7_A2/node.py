@@ -8,7 +8,7 @@ log.setLevel(logging.DEBUG)
 
 
 class Node:
-    def __init__(self, game_state, move, our_move):
+    def __init__(self, game_state: GameState, move: Move, our_move: bool):
         self.root_move = (0, 0, 0)
         self.depth = 0
         self.move = move
