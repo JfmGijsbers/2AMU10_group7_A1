@@ -4,7 +4,7 @@
 
 import random
 import math
-from typing import  Union
+from typing import Union
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 from team7_A2.evaluate import evaluate
@@ -14,13 +14,6 @@ from copy import deepcopy
 import logging
 
 log = logging.getLogger("sudokuai")
-log.setLevel(logging.DEBUG)
-
-# handler = logging.StreamHandler(sys.stdout)
-# handler.setLevel(logging.CRITICAL)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
-# log.addHandler(handler)
 
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -31,15 +24,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def __init__(self):
         super().__init__()
 
-    def pick_strategy(self, game_state: GameState, our_move):
-        """
-
-        :param game_state:
-        :param our_move:
-        :return:
-        """
-        return get_strategy(game_state)
-
     def compute_best_move(self, game_state: GameState) -> None:
         """
         Computes the best move
@@ -47,8 +31,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :return:
         """
         our_turn = True
-        # determine which strategies
+
+        # Determine which strategies to play
         strategies = get_strategy(game_state)
+
+        # Calculate the first layer of moves depending on the given strategies
         all_moves = get_all_moves(game_state, strategies)
         if len(all_moves) == 0:
             log.error("No moves found!")
@@ -62,26 +49,31 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         move = random.choice(all_moves)
 
         # To make the always proposed move a bit more random (better performance)
-        # just sample a random legal move
+        # Just sample a random legal move
         while evaluate(game_state, move) == -1:
             move = random.choice(all_moves)
         log.info(f"Proposing move {move}")
         self.propose_move(move)
         log.info(f"Proposed move {move}")
 
+        # Instantiate the root of the game tree
         root_move = Move(0, 0, 0)
         root = Node(game_state, root_move, our_turn)
         depth = 0
 
         # First, we need to compute layer 1
         depth = depth + 1
+        # Calculate the children of the root
         root.calculate_children(root, all_moves, our_turn, depth)
+        # Obtain the best move from the minimax
         best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn)
         log.info(f"Found best move: {str(best_move.root_move)}")
-
         self.propose_move(best_move.root_move)
+
+        # switch turns
         our_turn = not our_turn
- 
+
+        # ITERATIVE DEEPENING
         # Then, keep computing moves as long as there are
         # moves to make, alternating between
         # friendly moves and hostile moves.
@@ -99,8 +91,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             kids = temp_kids
             log.info(f"Found {len(temp_kids)} moves for {'us' if our_turn else 'them'} ")
 
-            # If the last turn is not ours,
-            # we don't want to run the minimax for this turn
+            # Stop iterative deepening if the end of the game tree has been reached
+            # Else go further down the tree
             if len(kids) == 0:
                 log.critical("Last turn, stop minimaxing")
             else:

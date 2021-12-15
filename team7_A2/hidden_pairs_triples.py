@@ -4,7 +4,7 @@ from typing import List, Set, Tuple
 from itertools import combinations
 
 
-def hidden_pairs_triples(game_state: GameState, little_num):
+def hidden_pairs_triples(game_state: GameState, little_num) -> List[Set[int]]:
     """
     Prune the little_num by finding hidden pairs and triples
 
@@ -33,23 +33,33 @@ def hidden_pairs_triples(game_state: GameState, little_num):
     :param little_num: List[Set], size: N^2, contains the candidate values for each cell
     :return: updated little_num
     """
-
-    N = game_state.N
     m = game_state.board.m
     n = game_state.board.n
+
+    # prune by row
     little_num = hidden_row(little_num, m, n)
+    # prune by col
     little_num = hidden_col(little_num, m, n)
+    # prune by box
     little_num = hidden_box(little_num, m, n)
     return little_num
 
 
-def hidden_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
+def hidden_row(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
 
+    :param little_num:
+    :param m:
+    :param n:
     :return:
     """
     N = n*m
+
     def add_val(dic: dict, val: int, r: int, c: int, val_cell: Set[int]):
+        """
+
+        :return:
+        """
         if str(val) not in dic:
             dic[str(val)] = [1, [(r, c)]]
         else:
@@ -83,24 +93,43 @@ def hidden_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
 def hidden_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
 
+    :param little_num:
+    :param m:
+    :param n:
     :return:
     """
     N = n*m
     for col in range(N):
+        temp_dic = {}
         pairs_list = []
         triples_list = []
-        # get coo and sets that are of size 2 and 3
-        for row in range(N):
-            if len(little_num[coo2ind(row, col, N)]) == 2:
-                pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
-            if len(little_num[coo2ind(row, col, N)]) == 2:
-                triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+        # assign every possible move to a value
+        for col in range(N):
+            for val in list(little_num[coo2ind(row, col, N)]):
+                temp_dic = add_val(temp_dic, val, row, col, little_num[coo2ind(row, col, N)])
+        # return the values that only occur once
+        for item in temp_dic.items():
+            val = int(item[0])
+            count = item[1][0]
+            cells = item[1][1]
+            cell_val = item[1][2]
+            if count == 2:
+                pairs_list.append([val, cells, cell_val])
+            if count == 2 or count==3:
+                triples_list.append([val, cells, cell_val])
         little_num = prune_hidden(little_num, check_hidden(pairs_list, 2), m, n, 2)
-        little_num = prune_hidden(little_num, check_hidden(pairs_list, 3), m, n, 3)
+        little_num = prune_hidden(little_num, check_hidden(triples_list, 3), m, n, 3)
     return little_num
 
 
 def hidden_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
+    """
+
+    :param little_num:
+    :param m:
+    :param n:
+    :return:
+    """
     """
     Checks all legal moves in a box, and if it's the last possiblitiy
     return the moves that are certain
@@ -161,6 +190,9 @@ def prune_hidden(little_num: List[Set[int]], arr: List[Tuple[Tuple[int, int],Set
 
     :param little_num:
     :param arr:
+    :param m:
+    :param n:
+    :param r:
     :return:
     """
     N = m*n

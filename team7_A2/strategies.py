@@ -17,6 +17,7 @@ def get_strategy(game_state: GameState):
     :param game_state:
     :return:
     """
+    # TODO implement strategy choosing
     return True
 
 
@@ -66,7 +67,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
 def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int]], List[Set[int]], List[Set[int]], List[Set[int]]]:
     """
     Obtain all legal moves (all_moves), all legal values per cell (little_num, comparable with the little
-    help numbers of a Sudoku), list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
+    help-numbers of a Sudoku), list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
 
     by:
     1. first making the list of sets of all placed values for each row, column or box
@@ -93,6 +94,8 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
 
     # initialize sets for all row, col and boxes containing sets with all
     # possible values for each cell, i.e. range(1, N+1)
+
+    # has to be done with for loops or it takes the references
     mk_num_arr = lambda num: set(range(1, N + 1))
     row_set = []
     col_set = []
@@ -110,7 +113,7 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
 
     # check each cell if it's empty or not
     # if it's empty, add it to the empty cells
-    # if it's not empty, remove the value of the cell from the respective row,col,box set
+    # if it's not empty, remove the value of the cell from the respective row, col, box set
     for i in range(N):
         for j in range(N):
             if game_state.board.get(i, j) != SudokuBoard.empty:
@@ -138,8 +141,13 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
 def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], List[Move], List[Move]]:
     """
     Convert little_num into a list of Move objects
+    It returns 3 different possible moves list:
+        1. list of all moves possible
+        2. list of possible taboo moves
+        3. list of certain non taboo moves
+
     :param little_num: N^2 size list corresponding to each cell in the sudoku, containing sets for all possible values
-    :return: list of possible Move objects
+    :return: list of all possible Moves, list of possible taboo Moves, list of certain non-taboo moves
     """
     all_moves = []
     pos_taboo = []

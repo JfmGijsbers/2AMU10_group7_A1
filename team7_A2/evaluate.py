@@ -68,6 +68,7 @@ def check_square(board: SudokuBoard, move: Move) -> bool:
         log.debug(f"Move scoring for square: {str(move)}")
         return CHECKS["SCORING"]
 
+
 def get_all_moves(game_state: GameState) -> List[Move]:
     """
     Returns a list of all possible moves
@@ -93,9 +94,11 @@ def get_all_moves(game_state: GameState) -> List[Move]:
     log.debug(f"get_all_moves returned {str(len(all_moves))} moves")
     return all_moves
 
+
 def is_empty(board: SudokuBoard, m, n):
     log.debug(f"[{m}, {n}] has value {board.get(m,n)}")
     return board.get(m, n) == 0
+
 
 def evaluate(game_state: GameState, move: Move):
     """

@@ -44,10 +44,12 @@ def only_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     for box in range(N):
         coo_box = []
         # Get for every box all corresponding coordinates
-        # coo contains coordinates of respective
+        # coo contains a coordinate of that respective box
         for coo in box2coo(box, n, m):
             coo_box = coo_box + list(little_num[coo2ind(coo[0], coo[1], N)])
+        # return the values that only occur once
         only_once = get_single_number(coo_box)
+        # update little_num by taking the intersection if it contains the number that only occurs once
         if bool(little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)):
             little_num[coo2ind(coo[0], coo[1], N)] = little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)
     return little_num
