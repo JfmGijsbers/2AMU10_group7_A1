@@ -1,5 +1,5 @@
 from team7_A2.auxiliary import coo2ind, box2coo
-from competitive_sudoku.sudoku import GameState
+from competitive_sudoku.sudoku import GameState, SudokuBoard
 from typing import List, Set, Tuple
 from itertools import combinations
 
@@ -23,7 +23,16 @@ def box_line_reduction(game_state: GameState, little_num: List[Set[int]], row_se
     :return: updated little_num
     """
     print(little_num)
-    print(row_set)
-    print(col_set)
-    print(box_set)
-    pass
+    N = game_state.board.N
+    for i in range(N):
+        for j in range(N):
+            pass
+    return
+
+
+def check_row(board: SudokuBoard):
+    """
+    For every row, every square needs to be checked for
+    the 
+    """
+    return
