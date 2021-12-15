@@ -8,9 +8,9 @@ import math
 from typing import List
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
-from team7_A2.evaluate import evaluate, get_all_moves
+from team7_A2.evaluate import evaluate
 from team7_A2.node import Node
-from team7_A2.strategies import only_choice, get_strategy
+from team7_A2.strategies import get_strategy
 from copy import deepcopy
 import logging
 import sys
@@ -41,10 +41,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param our_move:
         :return:
         """
-        if our_move:
-            return only_choice(game_state)
-        else:
-            return get_all_moves(game_state)
+        return get_strategy(game_state)
 
     def compute_best_move(self, game_state: GameState) -> None:
         """
@@ -59,7 +56,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # all_moves = get_all_moves2(game_state, strategies)
         #all_moves = self.pick_strategy(game_state, our_turn)
-        all_moves = get_all_moves(game_state)
+        all_moves = get_strategy(game_state)
         if len(all_moves) == 0:
             log.error("No moves found!")
 
@@ -100,7 +97,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         while len(kids) != 0:
             temp_kids = []
             for child in kids:
-                new_all_moves = self.pick_strategy(child.new_game_state, our_turn)
+                new_all_moves = get_strategy(child.new_game_state)
                 child.calculate_children(child, new_all_moves, our_turn)
 
                 for leaf in child.children:
