@@ -43,30 +43,23 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     :var box_set: List[Set], size: N, contains the placed numbers of each box
 
     :param game_state: the current game state
-    :param strategies: which strategies to use TODO implement strategies check
+    :param strategies: which strategies to use
     :return: a list of Moves objects that are pruned according to the strategies
     """
 
     # generate all legal moves, all candidate values per cell, and sets of placed numbers for row, col and box
     all_moves, little_num, row_set, col_set, box_set = generate_candidates(game_state)
-    # for move in all_moves:
-    #     print(move)
-    # print(little_num)
 
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
-        little_num = naked_pairs_triples(game_state, little_num)
+        #little_num = naked_pairs_triples(game_state, little_num)
         #little_num = hidden_pairs_triples(game_state, little_num)
         #little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
         #little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
     all_moves, pos_taboo, not_taboo = update_all_moves(little_num, game_state.board.N)
-    # if len(all_moves)==0:
-    #     return pos_taboo
-    # else:
-    #     return all_moves
     return all_moves
 
 
@@ -81,8 +74,6 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
     2. determining which values are legal for each cell by taking the intersection of the corresponding
         row, col, box of the respective cell
         and adding it as a Move object to a list of all moves
-    TODO ik weet niet of we all_moves, row_set, col_set, box_set uberhaupt
-        nodig hebben om te returnen, maar beter te veel dan te weinige. Kunnen we altijd nog achteraf eruit halen.
 
     :param game_state: the current game state
     :return: Returns a tuple with the following variables:
@@ -99,6 +90,7 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
 
     # initialize all_moves and little_num
     all_moves = []
+
     # initialize sets for all row, col and boxes containing sets with all
     # possible values for each cell, i.e. range(1, N+1)
     mk_num_arr = lambda num: set(range(1, N + 1))
@@ -119,23 +111,12 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
     # check each cell if it's empty or not
     # if it's empty, add it to the empty cells
     # if it's not empty, remove the value of the cell from the respective row,col,box set
-
-    # print(row_set)
-    # print(col_set)
-    # print(box_set)
     for i in range(N):
         for j in range(N):
             if game_state.board.get(i, j) != SudokuBoard.empty:
-                # print(f"row: {i}, col: {j}, val: {game_state.board.get(i, j)}")
-                # print(f"before row: {row_set}")
-                # print(f"before col: {col_set}")
-                # print(f"before sq: {box_set}")
                 row_set[i].remove(game_state.board.get(i, j))
                 col_set[j].remove(game_state.board.get(i, j))
                 box_set[calc_box(i, j, m, n)].remove(game_state.board.get(i, j))
-                # print(f"after row: {row_set}")
-                # print(f"after col: {col_set}")
-                # print(f"after sq: {box_set}")
             else:
                 empty_cells.append((i, j))
 
@@ -146,25 +127,11 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int
         i_row = empty_cell[0]
         i_col = empty_cell[1]
         i_box = calc_box(i_row, i_col, m, n)
-        # print("hiiier")
-        # print(box_set[i_box])
-        # print(row_set[i_row])
-        # print(col_set[i_col])
         can_vals = row_set[i_row].intersection(col_set[i_col]).intersection(box_set[i_box])
-        # print(can_vals)
         for can_val in can_vals:
             if not TabooMove(i_row, i_col, can_val) in game_state.taboo_moves:
-                # print("hiiieeer2")
-                # print(can_val)
-                # print(little_num)
                 little_num[coo2ind(i_row, i_col, N)].add(can_val)
-                # print(little_num)
                 all_moves.append(Move(i_row, i_col, can_val))
-    # print(all_moves)
-    # print(little_num)
-    # print(row_set)
-    # print(col_set)
-    # print(box_set)
     return all_moves, little_num, row_set, col_set, box_set
 
 
@@ -178,16 +145,14 @@ def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], Li
     pos_taboo = []
     not_taboo = []
     for i in range(N*N):
+        row, col = ind2coo(i, N)
         if len(little_num[i]) >= 1:
-            row, col = ind2coo(i, N)
             for val in little_num[i]:
                 all_moves.append(Move(row, col, val))
             if len(little_num[i]) == 1:
-                row, col = ind2coo(i, N)
                 for val in little_num[i]:
                     not_taboo.append(Move(row, col, val))
             elif len(little_num[i]) > 1:
-                row, col = ind2coo(i, N)
                 for val in little_num[i]:
                     pos_taboo.append(Move(row, col, val))
     return all_moves, pos_taboo, not_taboo
