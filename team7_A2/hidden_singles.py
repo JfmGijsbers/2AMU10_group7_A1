@@ -18,12 +18,14 @@ def hidden_singles(game_state: GameState, little_num: List[Set]) -> List[Set]:
     :param little_num: List[Set], size: N^2, contains the candidate values for each cell
     :return: updated little_num
     """
+
     m = game_state.board.m
     n = game_state.board.n
+    N = m*n
     # prune by row
-    little_num = only_row(little_num, m, n)
+    little_num = only_row(little_num, N)
     # prune by col
-    little_num = only_col(little_num, m, n)
+    little_num = only_col(little_num, N)
     # prune by box
     little_num = only_box(little_num, m, n)
     return little_num
@@ -31,36 +33,34 @@ def hidden_singles(game_state: GameState, little_num: List[Set]) -> List[Set]:
 
 def only_box(little_num, m, n):
     """
-    Checks all legal moves in a box, and if it's the only possiblitiy
-    return the moves that are certain
-    :param little_num:
-    :param m:
-    :param n:
-    :return:
+    Checks all legal values in a box and if a certain value X only occurs in one cell only
+    prune all other candidate values of that cell
+    :param little_num: list of all candidate values
+    :param N: number of rows and columns
+    :return: pruned version of little_num
     """
     N = n*m
     for box in range(N):
-        temp_list = []
-        # make for every box a
+        coo_box = []
+        # Get for every box all corresponding coordinates
+        # coo contains coordinates of respective box
         for coo in box2coo(box, n, m):
-            temp_list.append(list(little_num[coo2ind(coo[0], coo[1])]))
-        only_once = get_single_number(temp_list)
-        for j in range(N):
+            coo_box.append(list(little_num[coo2ind(coo[0], coo[1])]))
+            only_once = get_single_number(coo_box)
             if little_num[coo2ind(coo[0], coo[1])].intersection(only_once):
                 little_num[coo2ind(coo[0], coo[1])] = little_num[coo2ind(coo[0], coo[1])].intersection(only_once)
     return little_num
 
 
-def only_row(little_num, n, m):
+def only_row(little_num, N):
     """
-    Checks all legal moves in a box, and if it's the only possiblitiy
-    return the moves that are certain
-    :param little_num:
-    :param m:
-    :param n:
-    :return:
+    Checks all legal values in a row and if a certain value X only occurs in one cell only
+    prune all other candidate values of that cell
+    :param little_num: list of all candidate values
+    :param N: number of rows and columns
+    :return: pruned version of little_num
+    TODO als we tijd hebben kunnen we row en col samenvoegen in één functie
     """
-    N = n*m
 
     for row in range(N):
         temp_list = []
@@ -78,15 +78,14 @@ def only_row(little_num, n, m):
 
 def only_col(little_num, n, m):
     """
-    Checks all legal moves in a box, and if it's the only possiblitiy
-    return the moves that are certain
-    :param little_num:
-    :param m:
-    :param n:
-    :return:
+    Checks all legal values in a column and if a certain value X only occurs in one cell only
+    prune all other candidate values of that cell
+    :param little_num: list of all candidate values
+    :param N: number of rows and columns
+    :return: pruned version of little_num
     """
     N = n*m
-    # make for every row a value list
+    # make for every col a value list
     for col in range(N):
         temp_list = []
         # return the values that only occur once
