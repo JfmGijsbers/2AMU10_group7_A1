@@ -1,8 +1,10 @@
-from auxiliary import coo2ind, ind2coo, box2coo, get_single_number
-from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
+from auxiliary import coo2ind, box2coo
+from competitive_sudoku.sudoku import GameState
+from typing import List, Set, Tuple
+from itertools import combinations
 
 
-def naked_pairs_triples(game_state: GameState, little_num):
+def naked_pairs_triples(game_state: GameState, little_num: List[Set[int]]) -> List[Set[int]]:
     """
     Prune the little_num by finding naked pairs and triples
 
@@ -44,52 +46,117 @@ def naked_pairs_triples(game_state: GameState, little_num):
     return little_num
 
 
-def naked_box(little_num, m, n):
+def naked_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
     Checks all legal moves in a box, and if it's the last possiblitiy
     return the moves that are certain
+
     :return:
     """
     N = n*m
     for box in range(N):
-        temp_list = []
+        pairs_list = []
+        triples_list = []
         for coo in box2coo(box, n, m):
-            temp_list.append(list(little_num[coo2ind(coo[0], coo[1])]))
-        only_once = get_single_number(temp_list)
-        for j in range(N):
-            little_num[coo2ind(coo[0], coo[1])].intersection(only_once)
+            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
+                pairs_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
+            if len(little_num[coo2ind(coo[0], coo[1], N)]) == 2:
+                triples_list.append(((coo[0], coo[1]), little_num[coo2ind(coo[0], coo[1], N)]))
+        little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
+        little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)
     return little_num
 
 
-def naked_row(little_num, n, m):
+def naked_row(little_num: List[Set[int]], m: int, n: int)-> List[Set[int]]:
     """
 
     :return:
     """
     N = n*m
     for row in range(N):
-        temp_list = []
+        pairs_list = []
+        triples_list = []
         # get coo and sets that are of size 2 and 3
         for col in range(N):
-            temp_list.append(list(little_num[coo2ind(row, col)]))
-        # check pairs
-        # prune pairs
-        # check triples
-        # prune triples
+            if len(little_num[coo2ind(row, col, N)]) == 2:
+                pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+            if len(little_num[coo2ind(row, col, N)]) == 2:
+                triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+        little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
+        little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)
+
     return little_num
 
 
-def naked_col(little_num, n, m):
+def naked_col(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
 
     :return:
     """
     N = n*m
     for col in range(N):
-        temp_list = []
+        pairs_list = []
+        triples_list = []
+        # get coo and sets that are of size 2 and 3
         for row in range(N):
-            temp_list.append(list(little_num[coo2ind(col, row)]))
-        only_once = get_single_number(temp_list)
-        for j in range(N):
-            little_num[coo2ind(col, row)].intersection(only_once)
+            if len(little_num[coo2ind(row, col, N)]) == 2:
+                pairs_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+            if len(little_num[coo2ind(row, col, N)]) == 2:
+                triples_list.append(((row, col), little_num[coo2ind(row, col, N)]))
+        little_num = prune_naked(little_num, check_naked(pairs_list, 2), m, n, 2)
+        little_num = prune_naked(little_num, check_naked(pairs_list, 3), m, n, 3)
+    return little_num
+
+
+def check_naked(arr: List[Tuple[Tuple[int, int],Set[int]]], r: int) -> List[Tuple[Tuple[int, int], Set[int]]]:
+    """
+
+    :param arr:
+    :param r:
+    :return:
+    """
+    combis = combinations(arr, r)
+    all_combis = []
+    for combi in combis:
+        temp_set = combi[0][1].copy()
+        for i in range(len(combi[0])):
+            temp_set.update(combi[0][i][1])
+        if len(temp_set) == r:
+            for i in range(len(combi[0])):
+                all_combis.append(combi[0])
+    return all_combis
+
+
+def prune_naked(little_num: List[Set[int]], arr: List[Tuple[Tuple[int, int],Set[int]]], m: int, n: int, r: int) ->  List[Set[int]]:
+    """
+
+    :param little_num:
+    :param arr:
+    :return:
+    """
+    N = m*n
+    for cell in arr:
+        row = cell[0][0]
+        col = cell[0][1]
+        val = cell[1]
+
+
+        for i in range(N):
+            # remove combi out of row
+            temp_set = little_num[coo2ind(row, i, N)].copy()
+            temp_set.update(val)
+            if len(temp_set) != r:
+                little_num[coo2ind(row, i, N)].difference_update(val)
+
+            # remove combi out of col
+            temp_set = little_num[coo2ind(i, col, N)].copy()
+            temp_set.update(val)
+            if len(temp_set) != r:
+                little_num[coo2ind(i, col, N)].difference_update(val)
+
+            # remove combi out of box
+            temp_set = little_num[coo2ind(i, col, N)].copy()
+            temp_set.update(val)
+            if len(temp_set) != r:
+                little_num[coo2ind(i, col, N)].difference_update(val)
     return little_num

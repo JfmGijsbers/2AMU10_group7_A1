@@ -61,7 +61,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> list[Move]:
     return all_moves
 
 
-def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set], List[Set], List[Set], List[Set]]:
+def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set[int]], List[Set[int]], List[Set[int]], List[Set[int]]]:
     """
     Obtain all legal moves (all_moves), all legal values per cell (little_num, comparable with the little
     help numbers of a Sudoku), list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
@@ -127,7 +127,7 @@ def generate_candidates(game_state: GameState) -> Tuple[List[Move], List[Set], L
     return all_moves, little_num, row_set, col_set, box_set
 
 
-def update_all_moves(little_num: List[Set]) -> List[Move]:
+def update_all_moves(little_num: List[Set[int]]) -> List[Move]:
     """
     Convert little_num into a list of Move objects
     :param little_num: N^2 size list corresponding to each cell in the sudoku, containing sets for all possible values

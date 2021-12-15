@@ -3,7 +3,7 @@ from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 
 
-def hidden_singles(game_state: GameState, little_num: List[Set]) -> List[Set]:
+def hidden_singles(game_state: GameState, little_num: List[Set[int]]) -> List[Set[int]]:
     """
     Prune the little_num by finding hidden singles
 
@@ -31,7 +31,7 @@ def hidden_singles(game_state: GameState, little_num: List[Set]) -> List[Set]:
     return little_num
 
 
-def only_box(little_num, m, n) -> List[Set]:
+def only_box(little_num: List[Set[int]], m: int, n: int) -> List[Set[int]]:
     """
     Checks all legal values in a box and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
@@ -45,14 +45,14 @@ def only_box(little_num, m, n) -> List[Set]:
         # Get for every box all corresponding coordinates
         # coo contains coordinates of respective box
         for coo in box2coo(box, n, m):
-            coo_box.append(list(little_num[coo2ind(coo[0], coo[1])]))
+            coo_box = coo_box + list(little_num[coo2ind(coo[0], coo[1], N)])
             only_once = get_single_number(coo_box)
-            if little_num[coo2ind(coo[0], coo[1])].intersection(only_once):
-                little_num[coo2ind(coo[0], coo[1])] = little_num[coo2ind(coo[0], coo[1])].intersection(only_once)
+            if little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once):
+                little_num[coo2ind(coo[0], coo[1], N)] = little_num[coo2ind(coo[0], coo[1], N)].intersection(only_once)
     return little_num
 
 
-def only_row(little_num, N) -> List[Set]:
+def only_row(little_num: List[Set[int]], N: int) -> List[Set[int]]:
     """
     Checks all legal values in a row and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
@@ -61,22 +61,21 @@ def only_row(little_num, N) -> List[Set]:
     :return: pruned version of little_num
     TODO als we tijd hebben kunnen we row en col samenvoegen in één functie
     """
-
     for row in range(N):
         temp_list = []
         # make for every row a value list
         for col in range(N):
-            temp_list.append(list(little_num[coo2ind(row, col)]))
+            temp_list = temp_list + list(little_num[coo2ind(row, col, N)])
         # return the values that only occur once
         only_once = get_single_number(temp_list)
         # update little_num by taking the intersection if it contains the number that only occurs once
-        for j in range(N):
-            if little_num[coo2ind(row, col)].intersection(only_once):
-                little_num[coo2ind(row, col)] = little_num[coo2ind(row, col)].intersection(only_once)
+        for col in range(N):
+            if little_num[coo2ind(row, col, N)].intersection(only_once):
+                little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
     return little_num
 
 
-def only_col(little_num, n, m) -> List[Set]:
+def only_col(little_num: List[Set[int]], N: int) -> List[Set[int]]:
     """
     Checks all legal values in a column and if a certain value X only occurs in one cell only
     prune all other candidate values of that cell
@@ -84,16 +83,15 @@ def only_col(little_num, n, m) -> List[Set]:
     :param N: number of rows and columns
     :return: pruned version of little_num
     """
-    N = n*m
     # make for every col a value list
     for col in range(N):
         temp_list = []
         # return the values that only occur once
         for row in range(N):
-            temp_list.append(list(little_num[coo2ind(col, row)]))
+            temp_list = temp_list + list(little_num[coo2ind(col, row, N)])
         only_once = get_single_number(temp_list)
         # update little_num by taking the intersection if it contains the number that only occurs once
-        for j in range(N):
-            if little_num[coo2ind(row, col)].intersection(only_once):
-                little_num[coo2ind(row, col)] = little_num[coo2ind(row, col)].intersection(only_once)
+        for row in range(N):
+            if little_num[coo2ind(row, col, N)].intersection(only_once):
+                little_num[coo2ind(row, col, N)] = little_num[coo2ind(row, col, N)].intersection(only_once)
     return little_num
