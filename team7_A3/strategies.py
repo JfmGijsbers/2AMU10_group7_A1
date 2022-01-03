@@ -1,12 +1,12 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from team7_A2.auxiliary import coo2ind, calc_box, ind2coo
-from team7_A2.hidden_singles import hidden_singles
-from team7_A2.naked_pairs_triples import naked_pairs_triples
-# from team7_A2.hidden_pairs_triples import hidden_pairs_triples
-from team7_A2.box_line_reduction import box_line_reduction
-from team7_A2.pointing_pairs import pointing_pairs
+from team7_A3.auxiliary import coo2ind, calc_box, ind2coo
+from team7_A3.hidden_singles import hidden_singles
+from team7_A3.naked_pairs_triples import naked_pairs_triples
+# from team7_A3.hidden_pairs_triples import hidden_pairs_triples
+from team7_A3.box_line_reduction import box_line_reduction
+from team7_A3.pointing_pairs import pointing_pairs
 
 log = logging.getLogger("sudokuai")
 
