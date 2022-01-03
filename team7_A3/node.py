@@ -1,7 +1,6 @@
 from competitive_sudoku.sudoku import GameState, Move
 from team7_A2.evaluate import evaluate
 from copy import deepcopy
-
 import logging
 
 log = logging.getLogger("sudokuai")
@@ -10,6 +9,12 @@ log.setLevel(logging.DEBUG)
 
 class Node:
     def __init__(self, game_state: GameState, move: Move, our_move: bool):
+        """
+        Node class
+        :param game_state:
+        :param move:
+        :param our_move:
+        """
         self.root_move = (0, 0, 0)
         self.depth = 0
         self.move = move
@@ -21,6 +26,10 @@ class Node:
         self.value = self.calc_value()
 
     def calc_value(self):
+        """
+
+        :return:
+        """
         val = evaluate(self.game_state, self.move)
         if val == -1:
             self.taboo = True
@@ -29,9 +38,22 @@ class Node:
         return val
 
     def add_child(self, node):
+        """
+
+        :param node:
+        :return:
+        """
         self.children.append(node)
 
     def calculate_children(self, root, all_moves: list, our_move: bool, depth: int):
+        """
+
+        :param root:
+        :param all_moves:
+        :param our_move:
+        :param depth:
+        :return:
+        """
         for move in all_moves:
             new_game_state = deepcopy(root.game_state)
             new_move = deepcopy(move)
@@ -54,13 +76,26 @@ class Node:
                 self.add_child(node)
 
     def update_gamestate(self, game_state):
+        """
+
+        :param game_state:
+        :return:
+        """
         new_game_state = deepcopy(game_state)
         new_game_state.board.put(self.move.i, self.move.j, self.move.value)
         new_game_state.moves.append(self.move)
         return new_game_state
 
     def has_children(self):
+        """
+
+        :return:
+        """
         return bool(self.children)
 
     def get_children(self):
+        """
+
+        :return:
+        """
         return self.children

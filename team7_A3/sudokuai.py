@@ -27,7 +27,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
         """
         Computes the best move
-        :param game_state:
+        :param game_state: the game_state
         :return:
         """
         our_turn = True
@@ -104,9 +104,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
                 is_maximising_player: bool) -> Node:
         """
-        Recursively evaluates nodes in game tree and returns the proposed best node
-        proposed best node is the node that has either the maximum or the mimimum value in the terminal state
-        depending on is_maximising_player True or False respectively
+        Recursively evaluates nodes in game tree and returns the proposed best node.
+        Proposed best node is the node that has either the maximum or the mimimum value in the terminal state
+        depending if is_maximising_player is True or False respectively.
         :param node: starting state
         :param depth: terminal search depth
         :param alpha: pruning
@@ -122,7 +122,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # deep copy node, since it has to be a node object to compare
             maxValue = deepcopy(node)
             # assign -inf value to the node
-            maxValue.value = -math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, False)
                 maxValue = max([maxValue, value], key=lambda state: state.value)
@@ -133,7 +132,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         else:
             # minimizing player, similar to the maximising player
             minValue = deepcopy(node)
-            minValue.value = math.inf
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
                 minValue = min([minValue, value], key=lambda state: state.value)

@@ -10,6 +10,7 @@ CHECKS = {
     "VALID": 1,
     "SCORING": 2
 }
+
 SCORES = [0, 1, 3, 7]
 
 
