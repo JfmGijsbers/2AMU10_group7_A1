@@ -4,12 +4,12 @@
 
 import random
 import math
-from typing import Union
-from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
+from typing import Union, Tuple
+from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
-from team7_A2.evaluate import evaluate
-from team7_A2.node import Node
-from team7_A2.strategies import get_all_moves, get_strategy
+from team7_A3.evaluate import evaluate
+from team7_A3.node import Node
+from team7_A3.strategies import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
 
@@ -30,7 +30,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param game_state: the game_state
         :return:
         """
-        our_turn = True
+        is_maximising_player = True
 
         # Determine which strategies to play
         strategies = get_strategy(game_state)
@@ -58,51 +58,44 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # Instantiate the root of the game tree
         root_move = Move(0, 0, 0)
-        root = Node(game_state, root_move, our_turn)
         depth = 0
+        root = Node(game_state, root_move, False, depth)
 
-        # First, we need to compute layer 1
+        # Compute layer 1 by calculating the children of the root
         depth = depth + 1
-        # Calculate the children of the root
-        root.calculate_children(root, all_moves, our_turn, depth)
+        root.calculate_children(all_moves)
         # Obtain the best move from the minimax
-        best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn)
-        log.info(f"Found best move: {str(best_move.root_move)}")
+        best_move = self.minimax(root, depth, -math.inf, math.inf, False)
         self.propose_move(best_move.root_move)
 
         # switch turns
-        our_turn = not our_turn
+        is_maximising_player = not is_maximising_player
 
         # ITERATIVE DEEPENING
-        # Then, keep computing moves as long as there are
-        # moves to make, alternating between
-        # friendly moves and hostile moves.
-        kids = root.children
-        while len(kids) != 0:
-            temp_kids = []
+        # Keep computing moves as long as there are moves to make,
+        # alternating between our and the opponent's turn
+        children = root.children
+        while len(children) != 0:
+            leaves = []
             depth += 1
-            for child in kids:
-                strategies = get_strategy(child.new_game_state)
-                new_all_moves = get_all_moves(child.new_game_state, strategies)
-                child.calculate_children(child, new_all_moves, our_turn, depth)
-
+            # calculate new layer
+            for child in children:
+                strategies = get_strategy(child.game_state)
+                cand_leaves = get_all_moves(child.game_state, strategies)
+                child.calculate_children(cand_leaves)
                 for leaf in child.children:
-                    temp_kids.append(leaf)
-            kids = temp_kids
-            log.info(f"Found {len(temp_kids)} moves for {'us' if our_turn else 'them'} ")
-
-            # Stop iterative deepening if the end of the game tree has been reached
-            # Else go further down the tree
-            if len(kids) == 0:
-                log.critical("Last turn, stop minimaxing")
-            else:
-                best_move = self.minimax(root, depth, -math.inf, math.inf, our_turn)
-                log.info(f"Ran depth {depth}, proposing {best_move.root_move}")
+                    leaves.append(leaf)
+            children = leaves
+            # calculate best move
+            if len(children) != 0:
+                best_move = self.minimax(root, depth, -math.inf, math.inf, False)
                 self.propose_move(best_move.root_move)
-            our_turn = not our_turn
+                is_maximising_player = not is_maximising_player
+            else:
+                print("FINISHED TREE")
 
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
-                is_maximising_player: bool) -> Node:
+                is_maximising_player: bool) -> Tuple[Node, int]:
         """
         Recursively evaluates nodes in game tree and returns the proposed best node.
         Proposed best node is the node that has either the maximum or the mimimum value in the terminal state
@@ -112,30 +105,38 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param alpha: pruning
         :param beta: pruning
         :param is_maximising_player: is maximising player?
+        :param score: current score
         :return: best node proposal
         """
-        if depth == 0 or not node.has_children:
+        if depth == 0:
+            node.add_score(node.value)
             return node
 
-        children = node.children
-        if is_maximising_player:
+        children = deepcopy(node.children)
+        if is_maximising_player or node.depth == 0:
             # deep copy node, since it has to be a node object to compare
             maxValue = deepcopy(node)
+            maxValue.add_score(-math.inf)
             # assign -inf value to the node
             for child in children:
-                value = self.minimax(child, depth - 1, alpha, beta, False)
-                maxValue = max([maxValue, value], key=lambda state: state.value)
-                alpha = max(maxValue.value, alpha)
+                if node.depth == 0:
+                    value = self.minimax(child, depth - 1, alpha, beta, True)
+                else:
+                    value = self.minimax(child, depth - 1, alpha, beta, False)
+                maxValue = max([maxValue, value], key=lambda state: state.score)
+                alpha = max(maxValue.score, alpha)
                 if beta <= alpha:
                     break
+            maxValue.add_score(maxValue.score + node.value)
             return maxValue
         else:
             # minimizing player, similar to the maximising player
             minValue = deepcopy(node)
+            minValue.add_score(math.inf)
             for child in children:
                 value = self.minimax(child, depth - 1, alpha, beta, True)
-                minValue = min([minValue, value], key=lambda state: state.value)
-                beta = min(minValue.value, beta)
+                minValue = min([minValue, value], key=lambda state: state.score + node.value)
+                beta = min(minValue.score, beta)
                 if beta <= alpha:
                     break
             return minValue
