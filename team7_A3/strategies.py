@@ -53,7 +53,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
-        # little_num = naked_pairs_triples(game_state, little_num)
+        little_num = naked_pairs_triples(game_state, little_num)
         # little_num = hidden_pairs_triples(game_state, little_num)
         # little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
         # little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)

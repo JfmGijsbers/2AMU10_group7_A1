@@ -55,6 +55,10 @@ m x n (with m the number of rows and n the number of columns) is stored as the
 numbers m and n, followed by the (m * n) * m * n values of the squares of the
 board. Empty squares are printed as a dot '.'.
 
+m x n box size
+n x m boxes
+m*n x m*n board
+
 Below an example is given of a board with 2x3 regions.
 
 2 3

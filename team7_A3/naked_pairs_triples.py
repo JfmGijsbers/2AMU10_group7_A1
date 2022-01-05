@@ -1,4 +1,4 @@
-from team7_A2.auxiliary import coo2ind, box2coo, calc_box
+from team7_A3.auxiliary import coo2ind, box2coo, calc_box
 from competitive_sudoku.sudoku import GameState
 from typing import List, Set, Tuple, Union
 from itertools import combinations

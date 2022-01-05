@@ -21,6 +21,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     Sudoku AI that computes a move for a given sudoku configuration.
     """
 
+    # TODO prioritise
+    # TODO skip turn
+    # TODO strategies
+    # TODO pick strategies depending on the game state phase
     def __init__(self):
         super().__init__()
 
