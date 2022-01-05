@@ -41,6 +41,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param game_state: the game_state
         :return:
         """
+        # Save data
+        # self.save(test_data)
+
+        # Load data
+        # saved_data = self.load()
+
         is_maximising_player = True
 
         # Determine which strategies to play
