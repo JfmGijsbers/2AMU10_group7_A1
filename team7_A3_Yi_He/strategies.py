@@ -1,12 +1,12 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from team7_A3.auxiliary import coo2ind, calc_box, ind2coo
-from team7_A3.hidden_singles import hidden_singles
-from team7_A3.naked_pairs_triples import naked_pairs_triples
-# from team7_A3.hidden_pairs_triples import hidden_pairs_triples
-from team7_A3.box_line_reduction import box_line_reduction
-from team7_A3.pointing_pairs import pointing_pairs
+from team7_A3_Yi_He.auxiliary import coo2ind, calc_box, ind2coo
+from team7_A3_Yi_He.hidden_singles import hidden_singles
+from team7_A3_Yi_He.naked_pairs_triples import naked_pairs_triples
+# from team7_A3_Yi_He.hidden_pairs_triples import hidden_pairs_triples
+from team7_A3_Yi_He.box_line_reduction import box_line_reduction
+from team7_A3_Yi_He.pointing_pairs import pointing_pairs
 
 log = logging.getLogger("sudokuai")
 
@@ -23,20 +23,18 @@ def get_strategy(game_state: GameState):
 def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     """
     Get all moves based on the sudoku solving strategies by:
-    1. generate_candidates(game_state) - obtain all legal moves (all_moves), all legal values per cell (little_num,
-        comparable with the little help numbers of a Sudoku), list of sets of all placed values for each row, column or box
-        (row_set, col_set, box_set)
-    2. purning functions - prune little_num with respective sudoku solving strategy
-    3. update_all_moves(little_num) - convert all candidate values in little_num in Move objects, and thus
-        updating all_moves
+    1. generate_legal_moves(game_state) - get all legal moves as candidate moves and a list of sets of all placed
+        values for each unit (row_set, col_set, box_set)
+    2. purning functions - prune candidate moves with respective sudoku solving strategy
+    3. update_all_moves(little_num) - convert all candidate moves into Move objects
 
-    definition of the sizes:
+    definitions:
         box has n rows, and m cols
         N = n*m
         sudoku has N rows, and N cols
         sudoku has m row boxes, n col boxes
 
-    :var little_num: List[Set], size: N^2, contains the candidate values for each cell
+    :var cand_moves: List[Set], size: N^2, contains the candidate values for each cell
     :var all_moves: List[Move], size: variable, contains the possible moves
     :var row_set: List[Set], size: N, contains the placed numbers of each row
     :var col_set: List[Set], size: N, contains the placed numbers of each col
@@ -66,8 +64,8 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
 def generate_candidates(game_state: GameState) -> Tuple[
     List[Move], List[Set[int]], List[Set[int]], List[Set[int]], List[Set[int]]]:
     """
-    Obtain all legal moves (all_moves), all legal values per cell (little_num, comparable with the little
-    help-numbers of a Sudoku), list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
+    Obtain all legal moves to get candidate moves,
+    list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
 
     by:
     1. first making the list of sets of all placed values for each row, column or box

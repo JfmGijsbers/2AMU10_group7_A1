@@ -7,9 +7,9 @@ import math
 from typing import Union, Tuple
 from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
-from team7_A3.evaluate import evaluate
-from team7_A3.node import Node
-from team7_A3.strategies import get_all_moves, get_strategy
+from team7_A3_Yi_He.evaluate import evaluate
+from team7_A3_Yi_He.node import Node
+from team7_A3_Yi_He.strategies import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
 
@@ -38,6 +38,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
         """
         Computes the best move
+        definitions:
+        * Legal move: A move that corresponds with the rules of the sudoku
+        * Taboo move: A legal move that will result in an unsolvable sudoku
+        * Unit: row, column or box
+
         :param game_state: the game_state
         :return:
         """
@@ -64,10 +69,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             log.critical("Not proposing any moves")
             return
 
-        # Instantiate the root of the game tree
-        root_move = Move(0, 0, 0)
-        depth = 0
-        root = Node(game_state, root_move, False, depth)
+        all_trees = []
+        for i, move in enumerate(all_moves):
+            all_trees.append(Node(move, Tr))
 
         # Compute layer 1 by calculating the children of the root
         depth = depth + 1
@@ -105,6 +109,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 print(f"finished layer {depth}")
             else:
                 print("FINISHED TREE")
+
+    def make_trees(self):
+        """
+        Calculates the first moves of the GameState and makes seperate trees
+        :return:
+        """
+        pass
 
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
                 is_maximising_player: bool) -> Tuple[Node, int]:
