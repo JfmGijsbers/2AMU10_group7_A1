@@ -1,8 +1,10 @@
-from team7_A3.auxiliary import coo2ind, ind2coo, box2coo, get_single_number
+from .auxiliary import coo2ind, ind2coo, box2coo, get_single_number
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
+from .timer import Timer
 
 
+# @Timer(name="hidden_singles", text="hidden singles - elapsed time - {:0.4f} seconds")
 def hidden_singles(game_state: GameState, little_num: List[Set[int]]) -> List[Set[int]]:
     """
     Prune the little_num by finding hidden singles

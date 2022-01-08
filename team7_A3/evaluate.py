@@ -1,5 +1,5 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState
-from team7_A3.auxiliary import box2coo, calc_box
+from .auxiliary import box2coo, calc_box
 
 SCORES = [0, 1, 3, 7]
 

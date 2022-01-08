@@ -1,12 +1,13 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from team7_A3.auxiliary import coo2ind, calc_box, ind2coo
-from team7_A3.hidden_singles import hidden_singles
-from team7_A3.naked_pairs_triples import naked_pairs_triples
-# from team7_A3.hidden_pairs_triples import hidden_pairs_triples
-from team7_A3.box_line_reduction import box_line_reduction
-from team7_A3.pointing_pairs import pointing_pairs
+from .auxiliary import coo2ind, calc_box, ind2coo
+from .hidden_singles import hidden_singles
+from .naked_pairs_triples import naked_pairs_triples
+# from .hidden_pairs_triples import hidden_pairs_triples
+from .box_line_reduction import box_line_reduction
+from .pointing_pairs import pointing_pairs
+from .timer import Timer
 
 log = logging.getLogger("sudokuai")
 
@@ -20,6 +21,7 @@ def get_strategy(game_state: GameState):
     return True
 
 
+@Timer(name="get_all_moves", text="get_all_moves - elapsed time - {:0.4f} seconds")
 def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     """
     Get all moves based on the sudoku solving strategies by:
@@ -53,7 +55,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
-        little_num = naked_pairs_triples(game_state, little_num)
+        # little_num = naked_pairs_triples(game_state, little_num)
         # little_num = hidden_pairs_triples(game_state, little_num)
         # little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
         # little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
@@ -63,6 +65,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     return all_moves
 
 
+@Timer(name="generate_candidates", text="gen_candidates - elapsed time - {:0.4f} seconds")
 def generate_candidates(game_state: GameState) -> Tuple[
     List[Move], List[Set[int]], List[Set[int]], List[Set[int]], List[Set[int]]]:
     """
@@ -138,6 +141,7 @@ def generate_candidates(game_state: GameState) -> Tuple[
     return all_moves, little_num, row_set, col_set, box_set
 
 
+@Timer(name="update_all_moves", text="update all moves - elapsed time - {:0.4f} seconds")
 def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], List[Move], List[Move]]:
     """
     Convert little_num into a list of Move objects

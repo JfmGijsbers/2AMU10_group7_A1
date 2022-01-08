@@ -1,9 +1,10 @@
 from __future__ import annotations
 from competitive_sudoku.sudoku import GameState, Move
-from team7_A3.evaluate import evaluate
+from .evaluate import evaluate
 from copy import deepcopy
 from typing import List, Union
 import logging
+from .timer import Timer
 
 log = logging.getLogger("sudokuai")
 log.setLevel(logging.DEBUG)
@@ -32,13 +33,15 @@ class Node:
         self.root_move = (0, 0, 0)
         self.depth = depth
         self.move = move
-        self.parent_game_state = deepcopy(parent_game_state)
+        self.parent_game_state = parent_game_state
         self.taboo = False
         self.game_state = self.update_gamestate(self.parent_game_state)
         self.children = []
         self.is_maximising_player = is_maximising_player
         self.value = self.calc_value()
 
+    #
+    # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
     def calc_value(self):
         """
         Calculates the gained value of the move
@@ -61,6 +64,7 @@ class Node:
         """
         self.children.append(child)
 
+    # @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
     def calculate_children(self, cand_moves: list) -> None:
         """
         Calculates and adds all non-taboo candidate moves
