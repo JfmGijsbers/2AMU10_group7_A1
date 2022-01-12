@@ -4,14 +4,14 @@
 
 import random
 import math
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
-from team7_A3_Yi_He.evaluate import evaluate
-from team7_A3_Yi_He.node import Node
-from team7_A3_Yi_He.strategies import get_all_moves, get_strategy
+from .node import Node
+from .evaluation import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
+import numpy as np
 
 log = logging.getLogger("sudokuai")
 
@@ -46,76 +46,49 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :param game_state: the game_state
         :return:
         """
-        # Save data
-        # self.save(test_data)
-
-        # Load data
-        # saved_data = self.load()
-
-        is_maximising_player = True
+        saved_data = None
+        # Load data if data is available
+        saved_data = self.load()
+        saved_data = self.update_saved_data(saved_data, GameState)
 
         # Determine which strategies to play
-        strategies = get_strategy(game_state)
+        strategies = get_strategy(saved_data)
 
         # Calculate the first layer of moves depending on the given strategies
-        all_moves = get_all_moves(game_state, strategies)
-        if len(all_moves) == 0:
-            log.error("No moves found!")
+        nont_moves, maybet_moves, t_moves = get_all_moves(saved_data, strategies)
 
-        # Always have a move proposed
-        try:
-            self.propose_move(random.choice(all_moves))
-        except:
-            log.critical("Not proposing any moves")
-            return
+        # Save data
+        self.save(saved_data)
 
+        # Initialize all trees
         all_trees = []
-        for i, move in enumerate(all_moves):
-            all_trees.append(Node(move, Tr))
+        for i, data_move in enumerate(data_moves):
+            all_trees.append(Node(data_move, True))
+        # sort trees on priority
+        all_trees.sort(key=lambda game_tree: game_tree.priority)
+        self.propose_best_move(all_trees)
 
-        # Compute layer 1 by calculating the children of the root
-        depth = depth + 1
-        root.calculate_children(all_moves)
-        # Obtain the best move from the minimax
-        random.shuffle(root.children)
-        best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-        print("finished layer 1")
-        self.propose_move(best_move.root_move)
-
-        # switch turns
-        is_maximising_player = not is_maximising_player
-
-        # ITERATIVE DEEPENING
-        # Keep computing moves as long as there are moves to make,
-        # alternating between our and the opponent's turn
-        children = root.children
-        while len(children) != 0:
-            leaves = []
-            depth += 1
-            # calculate new layer
-            for child in children:
-                strategies = get_strategy(child.game_state)
-                cand_leaves = get_all_moves(child.game_state, strategies)
-                child.calculate_children(cand_leaves)
-                for leaf in child.children:
-                    leaves.append(leaf)
-            children = leaves
-            random.shuffle(children)
-            # calculate best move
-            if len(children) != 0:
-                best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-                self.propose_move(best_move.root_move)
-                is_maximising_player = not is_maximising_player
-                print(f"finished layer {depth}")
-            else:
-                print("FINISHED TREE")
-
-    def make_trees(self):
-        """
-        Calculates the first moves of the GameState and makes seperate trees
-        :return:
-        """
-        pass
+        # # ITERATIVE DEEPENING
+        # # Keep computing moves as long as there are moves to make,
+        # # alternating between our and the opponent's turn
+        # leaves = []
+        # while leaves:
+        #     # for all trees
+        #     # TODO decide on priority
+        #     # check layer up
+        #     for leaf in leaves:
+        #         # Calculate the first layer of moves depending on the given strategies
+        #         leaf.add_layer() #add children to leaves if possible, calc value
+        #         if not leaf.is_leaf():
+        #             best_move = self.minimax(tree, tree.depth, -math.inf, math.inf, False)
+        #
+        #     # calculate best move
+        #     if len(children) != 0:
+        #         best_move = self.minimax(root, depth, -math.inf, math.inf, False)
+        #         self.propose_move(best_move.root_move)
+        #         print(f"finished layer {depth}")
+        #     else:
+        #         print("FINISHED TREE")
 
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
                 is_maximising_player: bool) -> Tuple[Node, int]:
@@ -135,8 +108,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             node.add_score(node.value)
             return node
 
-        children = deepcopy(node.children)
-        if is_maximising_player or node.depth == 0:
+        children = node.children
+        if is_maximising_player:
             # deep copy node, since it has to be a node object to compare
             maxValue = deepcopy(node)
             maxValue.add_score(-math.inf)
@@ -172,3 +145,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     break
             minValue.add_score(minValue.score + node.value)
             return minValue
+
+    def propose_best_move(self, moves: List[Node]) -> None:
+        """
+        moves contains a list with all Node of the first move that can be played
+        Node has a score, which represents the maximum score it can get playing that move
+        :param moves:
+        :return:
+        """
+        max_score = max(moves, key=lambda move: move.score)
+        max_moves = [move for move in moves if move.score == max_score]
+        move = random.choice(max_moves)
+        self.propose_move(move.root)
+
+    def update_saved_data(self):
+        pass
