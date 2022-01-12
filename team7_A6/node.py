@@ -1,6 +1,6 @@
 from __future__ import annotations
 from competitive_sudoku.sudoku import GameState, Move
-from .evaluate import evaluate
+from .evaluate import evaluate_val
 from copy import deepcopy
 from typing import List, Union
 import logging
@@ -38,7 +38,10 @@ class Node:
         self.game_state = self.update_gamestate(self.parent_game_state)
         self.children = []
         self.is_maximising_player = is_maximising_player
-        self.value = self.calc_value()
+        val, priority = self.calc_value()
+        self.value = val
+        self.score = 0
+        self.priority = priority
 
     #
     # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
@@ -50,12 +53,13 @@ class Node:
         """
         if self.depth == 0:
             val = 0
+            priority = 10
         else:
-            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds"):
-                val = evaluate(self.parent_game_state, self.move)
+            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds", logger=None):
+                val, priority = evaluate_val(self.parent_game_state.board, self.move)
         if not self.is_maximising_player and self.depth != 0:
             val *= -1
-        return val
+        return val, priority
 
     def add_child(self, child: Node) -> None:
         """
@@ -66,7 +70,7 @@ class Node:
         self.children.append(child)
 
     # @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
-    def calculate_children(self, cand_moves: list) -> None:
+    def calculate_children(self, cand_moves: list, with_priority: bool) -> List[Move]:
         """
         Calculates and adds all non-taboo candidate moves
         by making nodes of the moves which
@@ -75,15 +79,22 @@ class Node:
         :param cand_moves: list of candidate moves for the children
         :return: updates the children list of the node
         """
+        save_move = []
         for cand_move in cand_moves:
-            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds"):
+            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds", logger=None):
                 node = Node(self.game_state, cand_move, not self.is_maximising_player, self.depth + 1)
             if not node.taboo:
                 if self.depth == 0:
                     node.root_move = cand_move
                 else:
                     node.root_move = self.root_move
-                self.add_child(node)
+                if node.priority < 5 and with_priority:
+                    self.add_child(node)
+                elif not with_priority:
+                    self.add_child(node)
+                else:
+                    save_move.append(node.move)
+        return save_move
 
     def update_gamestate(self, parent_game_state: GameState) -> GameState:
         """

@@ -1,4 +1,4 @@
-from team7_A3_Yi_He.auxiliary import coo2ind, box2coo
+from ..auxiliary import coo2ind, box2coo
 from competitive_sudoku.sudoku import GameState, SudokuBoard
 from typing import List, Set, Tuple
 from itertools import combinations

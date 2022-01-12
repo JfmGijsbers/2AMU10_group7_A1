@@ -1,12 +1,10 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
-from team7_A3_Yi_He.auxiliary import coo2ind, calc_box, ind2coo
-from team7_A3_Yi_He.hidden_singles import hidden_singles
-from team7_A3_Yi_He.naked_pairs_triples import naked_pairs_triples
-# from team7_A3_Yi_He.hidden_pairs_triples import hidden_pairs_triples
-from team7_A3_Yi_He.box_line_reduction import box_line_reduction
-from team7_A3_Yi_He.pointing_pairs import pointing_pairs
+from .auxiliary import coo2ind, calc_box, ind2coo
+from .strategies.hidden_singles import hidden_singles
+# from .hidden_pairs_triples import hidden_pairs_triples
+from .timer import Timer
 
 log = logging.getLogger("sudokuai")
 
@@ -20,21 +18,24 @@ def get_strategy(game_state: GameState):
     return True
 
 
-def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
+@Timer(name="get_all_moves", text="get_all_moves - elapsed time - {:0.4f} seconds", logger=None)
+def get_all_moves(game_state: GameState, strategies: bool) -> Tuple[List[Move], List[Move]]:
     """
     Get all moves based on the sudoku solving strategies by:
-    1. generate_legal_moves(game_state) - get all legal moves as candidate moves and a list of sets of all placed
-        values for each unit (row_set, col_set, box_set)
-    2. purning functions - prune candidate moves with respective sudoku solving strategy
-    3. update_all_moves(little_num) - convert all candidate moves into Move objects
+    1. generate_candidates(game_state) - obtain all legal moves (all_moves), all legal values per cell (little_num,
+        comparable with the little help numbers of a Sudoku), list of sets of all placed values for each row, column or box
+        (row_set, col_set, box_set)
+    2. purning functions - prune little_num with respective sudoku solving strategy
+    3. update_all_moves(little_num) - convert all candidate values in little_num in Move objects, and thus
+        updating all_moves
 
-    definitions:
+    definition of the sizes:
         box has n rows, and m cols
         N = n*m
         sudoku has N rows, and N cols
         sudoku has m row boxes, n col boxes
 
-    :var cand_moves: List[Set], size: N^2, contains the candidate values for each cell
+    :var little_num: List[Set], size: N^2, contains the candidate values for each cell
     :var all_moves: List[Move], size: variable, contains the possible moves
     :var row_set: List[Set], size: N, contains the placed numbers of each row
     :var col_set: List[Set], size: N, contains the placed numbers of each col
@@ -51,21 +52,22 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
-        little_num = naked_pairs_triples(game_state, little_num)
+        # little_num = naked_pairs_triples(game_state, little_num)
         # little_num = hidden_pairs_triples(game_state, little_num)
         # little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)
         # little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
-    all_moves, pos_taboo, not_taboo = update_all_moves(little_num, game_state.board.N)
-    return all_moves
+    all_moves, pos_taboo, not_taboo, taboo_list = update_all_moves(all_moves, little_num, game_state.board.N)
+    return all_moves, taboo_list
 
 
+@Timer(name="generate_candidates", text="gen_candidates - elapsed time - {:0.4f} seconds", logger=None)
 def generate_candidates(game_state: GameState) -> Tuple[
     List[Move], List[Set[int]], List[Set[int]], List[Set[int]], List[Set[int]]]:
     """
-    Obtain all legal moves to get candidate moves,
-    list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
+    Obtain all legal moves (all_moves), all legal values per cell (little_num, comparable with the little
+    help-numbers of a Sudoku), list of sets of all placed values for each row, column or box (row_set, col_set, box_set)
 
     by:
     1. first making the list of sets of all placed values for each row, column or box
@@ -136,7 +138,9 @@ def generate_candidates(game_state: GameState) -> Tuple[
     return all_moves, little_num, row_set, col_set, box_set
 
 
-def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], List[Move], List[Move]]:
+@Timer(name="update_all_moves", text="update all moves - elapsed time - {:0.4f} seconds", logger=None)
+def update_all_moves(legal_moves: List[Move], little_num: List[Set[int]], N: int) -> Tuple[
+    List[Move], List[Move], List[Move], List[Move]]:
     """
     Convert little_num into a list of Move objects
     It returns 3 different possible moves list:
@@ -148,6 +152,7 @@ def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], Li
     :return: list of all possible Moves, list of possible taboo Moves, list of certain non-taboo moves
     """
     all_moves = []
+    taboo_list = []
     pos_taboo = []
     not_taboo = []
     for i in range(N * N):
@@ -161,4 +166,5 @@ def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], Li
             elif len(little_num[i]) > 1:
                 for val in little_num[i]:
                     pos_taboo.append(Move(row, col, val))
-    return all_moves, pos_taboo, not_taboo
+    taboo_list = [tab_move for tab_move in legal_moves if tab_move not in all_moves]
+    return all_moves, pos_taboo, not_taboo, [*taboo_list]
