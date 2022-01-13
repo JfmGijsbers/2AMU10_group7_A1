@@ -1,17 +1,32 @@
 from __future__ import annotations
 from competitive_sudoku.sudoku import GameState, Move
-from .evaluate import evaluate
+from .evaluate import evaluate_val
 from copy import deepcopy
 from typing import List, Union
 import logging
 from .timer import Timer
+import math
 
-log = logging.getLogger("sudokuai")
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger("sudokuaiA3")
+logger.setLevel(logging.DEBUG)
+
+@dataclass
+class MoveData:
+    """Stores data to be stored and loaded"""
+    move: Move = None
+    board: SudokuBoard = None
+    score: int = None
+    depth: int = None
+    value: int = None
+    priority: int = None
+    is_taboo: bool = False
 
 
 class Node:
-    def __init__(self, parent_game_state: GameState, move: Move, is_maximising_player: bool, depth: int):
+    def __init__(self,
+                 move_data: MoveData = None,
+                 is_root: bool = False,
+                 is_dummy: int = 0):
         """
         a Node object is part of the game tree
         each layer of the game tree represents a turn
@@ -30,15 +45,19 @@ class Node:
         :param is_maximising_player: Is it the maximising player's turn?
         :param depth: Depth of the node in the game tree
         """
-        self.root_move = (0, 0, 0)
-        self.depth = depth
-        self.move = move
-        self.parent_game_state = parent_game_state
-        self.taboo = False
-        self.game_state = self.update_gamestate(self.parent_game_state)
-        self.children = []
-        self.is_maximising_player = is_maximising_player
-        self.value = self.calc_value()
+        if is_root:
+            self.depth = 0
+            self.parent = self
+            self.is_maximising_player = False
+        if is_dummy == 0:
+            self.move_data = move_data
+            self.children = []
+        elif is_dummy == 1:
+            self.score = -math.inf
+            self.value = -math.inf
+        elif is_dummy == 2:
+            self.score = math.inf
+            self.value = math.inf
 
     #
     # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
@@ -50,12 +69,13 @@ class Node:
         """
         if self.depth == 0:
             val = 0
+            priority = 10
         else:
-            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds"):
-                val = evaluate(self.parent_game_state, self.move)
+            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds", logger=None):
+                val, priority = evaluate_val(self.parent_game_state.board, self.move)
         if not self.is_maximising_player and self.depth != 0:
             val *= -1
-        return val
+        return val, priority
 
     def add_child(self, child: Node) -> None:
         """
@@ -65,8 +85,8 @@ class Node:
         """
         self.children.append(child)
 
-    @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
-    def calculate_children(self, cand_moves: list) -> None:
+    # @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
+    def calculate_children(self, cand_moves: list, with_priority: bool) -> List[Move]:
         """
         Calculates and adds all non-taboo candidate moves
         by making nodes of the moves which
@@ -75,15 +95,19 @@ class Node:
         :param cand_moves: list of candidate moves for the children
         :return: updates the children list of the node
         """
+        save_move = []
         for cand_move in cand_moves:
-            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds"):
+            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds", logger=None):
                 node = Node(self.game_state, cand_move, not self.is_maximising_player, self.depth + 1)
             if not node.taboo:
-                if self.depth == 0:
-                    node.root_move = cand_move
+
+                if node.priority < 4 and with_priority:
+                    self.add_child(node)
+                elif not with_priority:
+                    self.add_child(node)
                 else:
-                    node.root_move = self.root_move
-                self.add_child(node)
+                    save_move.append(node.move)
+        return save_move
 
     def update_gamestate(self, parent_game_state: GameState) -> GameState:
         """
