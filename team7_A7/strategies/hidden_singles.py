@@ -5,7 +5,7 @@ from team7_A6.timer import Timer
 
 
 # @Timer(name="hidden_singles", text="hidden singles - elapsed time - {:0.4f} seconds")
-def hidden_singles(game_state: GameState, little_num: List[Set[int]]) -> List[Set[int]]:
+def hidden_singles(m: int, n: int, little_num: List[Set[int]]) -> List[Set[int]]:
     """
     Prune the little_num by finding hidden singles
 
@@ -20,9 +20,6 @@ def hidden_singles(game_state: GameState, little_num: List[Set[int]]) -> List[Se
     :param little_num: List[Set], size: N^2, contains the candidate values for each cell
     :return: updated little_num
     """
-
-    m = game_state.board.m
-    n = game_state.board.n
     N = m * n
     # prune by row
     little_num = only_row(little_num, N)

@@ -8,7 +8,7 @@ from typing import Union, Tuple, List
 from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
 from .evaluate import evaluate_val
-from .node import Node
+from .node import Node, MoveData
 from .strat import get_all_moves, get_strategy
 from copy import deepcopy
 import logging
@@ -61,40 +61,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :return:
         """
         logger.info("starting compute_best_move")
-        # Determine which strategies to play
-        strategies = get_strategy(game_state)
+
+        board = game_state.board
+        played_taboo_moves = game_state.taboo_moves
+        played_moves = game_state.moves
+        cur_scores = game_state.scores
 
         with Timer(name="Making root", text="Making root - {:0.4f} seconds", logger=logger.debug):
             # Instantiate the root of the game tree
-            root_move = Move(0, 0, 0)
             depth = 0
-            root = Node(game_state, root_move, False, depth)
+            root_data = MoveData(move=(0, 0, 0), depth=depth, board=board, score=self.get_cur_score(game_state))
+            root = Node(root_data, is_root=True)
 
         # Compute layer 1 by calculating the children of the root
         with Timer(name="Calculate layer 1", text="Calculate layer 1 - {:0.4f} seconds", logger=logger.debug):
-            depth = depth + 1
-            # Calculate the first layer of moves depending on the given strategies
-            all_moves, taboo_list = get_all_moves(game_state, strategies)
-            assert bool(all_moves), "No moves found in layer 1!"
-            # Always have a move proposed
-            self.propose_move(random.choice(all_moves))
-            safe_moves = root.calculate_children(all_moves, with_priority=False)
-            # Obtain the best move from the minimax
-            # if not bool(root.children):
-            #     _ = root.calculate_children(all_moves, with_priority=False)
-            # elif not (taboo_list):
-            #     taboo_list = safe_moves
-            root.children.sort(key=lambda move: move.priority)
-            if root.children[0].priority == 1:
-                self.propose_move(root.children[0].move)
-            else:
-                self.propose_move(root.children[-1].move)
-            best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-            self.propose_move(best_move.root_move)
-            self.propose_taboo(best_move.score, taboo_list)
-
+            depth += 1
+            non_taboo_moves, pos_taboo_moves, cur_taboo_moves = get_all_moves(board, played_taboo_moves)
+            best_move = self.set_best_move(root, non_taboo_moves, pos_taboo_moves, cur_taboo_moves)
             logger.info(f"Best move score is {best_move.score}")
             logger.info(f"FINISHED LAYER 1")
+
         # ITERATIVE DEEPENING
         # Keep computing moves as long as there are moves to make,
         # alternating between our and the opponent's turn
@@ -104,36 +90,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             depth += 1
             # calculate new layer
             logger.debug(f"Calculate children layer {depth}")
-            with Timer(name="children_depth", text="children_depth - {:0.4f} seconds", logger=None):
+            with Timer(name="children_depth", text="children_depth - {:0.4f} seconds", logger=logger.debug):
                 for child in children:
-                    strategies = get_strategy(child.game_state)
-                    cand_leaves, taboo_list = get_all_moves(child.game_state, strategies)
-                    logger.debug(f"Calculate children layer {depth} for child {child.move}")
-                    safe_moves = child.calculate_children(cand_leaves, with_priority=False)
-                    # if not bool(child.children):
-                    #     logger.info("no priority")
-                    #     safe_move = child.calculate_children(cand_leaves, with_priority=False)
-                    # elif not (taboo_list):
-                    #     taboo_list = safe_moves
-                    #     logger.info("has priority and taboo is empty")
-                    logger.debug(f"Calculated children layer {depth} for child {child.move}")
+                    non_taboo_moves, pos_taboo_moves, taboo_moves = get_moves(child.move_data.board, played_taboo_moves)
+                    best_move = self.set_best_move(root, non_taboo_moves, pos_taboo_moves, taboo_moves)
                     for leaf in child.children:
                         leaves.append(leaf)
-            logger.debug(f"Calculated children layer {depth}")
+            logger.debug(f"Calculated children layer {depth}, highest score {best_move}")
+            self.propose_taboo(best_move.score, cur_taboo_moves)
+            logger.info(f"FINISHED LAYER {depth}")
             children = leaves
-            random.shuffle(children)
-            # calculate best move
-            if len(children) != 0:
-                logger.debug(f"minimax {depth}")
-                with Timer(name="minimax", text="minimax - {:0.4f} seconds", logger=None):
-                    best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-                    self.propose_move(best_move.root_move)
-                    self.propose_taboo(best_move.score, taboo_list)
-                    logger.info(f"Best move score is {best_move.score}")
-                    logger.info(f"FINISHED LAYER {depth}")
-                logger.debug(f"minimaxed {depth}")
-            else:
-                print("FINISHED TREE")
+            if len(children) == 0:
+                print(f"FINISHED TREE, max depth is {depth-1}")
 
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
                 is_maximising_player: bool) -> Tuple[Node, int]:
@@ -193,7 +161,16 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         if score < 0 and bool(taboo_list):
             TAB_MOVE = random.choice(taboo_list)
             self.propose_move(TAB_MOVE)
-            logger.info("TABOO MOVE PLAYED")
-            print(f"PLAYED A TABOO MOVE {TAB_MOVE}")
+            logger.info(f"TABOO MOVE {TAB_MOVE} PLAYED")
 
+    def get_cur_score(self, game_state: GameState) -> int:
+        player_num = game_state.current_player()
+        if player_num == 1:
+            init_score = game_state.scores[1] - game_state.scores[0]
+        else:
+            init_score = game_state.scores[0] - game_state.scores[1]
+        return init_score
+
+    def set_best_move(self, root, non_taboo_moves, pos_taboo_moves, cur_taboo_moves):
+        pass
 

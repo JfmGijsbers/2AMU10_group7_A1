@@ -14,7 +14,6 @@ class MoveData:
     priority: int = 0
     board: SudokuBoard = None
     score: int = 0
-    taboo_moves: List[TabooMove] = field(default_factory=list)
 
     def update(self) -> None:
         pass

@@ -10,12 +10,22 @@ import math
 logger = logging.getLogger("sudokuaiA3")
 logger.setLevel(logging.DEBUG)
 
+@dataclass
+class MoveData:
+    """Stores data to be stored and loaded"""
+    move: Move = None
+    board: SudokuBoard = None
+    score: int = None
+    depth: int = None
+    value: int = None
+    priority: int = None
+    is_taboo: bool = False
+
 
 class Node:
-    def __init__(self, parent_game_state: GameState = None,
-                 move: Move = None,
-                 is_maximising_player: bool = None,
-                 depth: int = None,
+    def __init__(self,
+                 move_data: MoveData = None,
+                 is_root: bool = False,
                  is_dummy: int = 0):
         """
         a Node object is part of the game tree
@@ -35,19 +45,13 @@ class Node:
         :param is_maximising_player: Is it the maximising player's turn?
         :param depth: Depth of the node in the game tree
         """
+        if is_root:
+            self.depth = 0
+            self.parent = self
+            self.is_maximising_player = False
         if is_dummy == 0:
-            self.root_move = (0, 0, 0)
-            self.depth = depth
-            self.move = move
-            self.parent_game_state = parent_game_state
-            self.taboo = False
-            self.game_state = self.update_gamestate(self.parent_game_state)
+            self.move_data = move_data
             self.children = []
-            self.is_maximising_player = is_maximising_player
-            val, priority = self.calc_value()
-            self.value = val
-            self.score = 0
-            self.priority = priority
         elif is_dummy == 1:
             self.score = -math.inf
             self.value = -math.inf
@@ -96,10 +100,7 @@ class Node:
             with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds", logger=None):
                 node = Node(self.game_state, cand_move, not self.is_maximising_player, self.depth + 1)
             if not node.taboo:
-                if self.depth == 0:
-                    node.root_move = cand_move
-                else:
-                    node.root_move = self.root_move
+
                 if node.priority < 4 and with_priority:
                     self.add_child(node)
                 elif not with_priority:

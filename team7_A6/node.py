@@ -10,6 +10,7 @@ import math
 logger = logging.getLogger("sudokuaiA3")
 logger.setLevel(logging.DEBUG)
 
+PRIORITY_N = 4
 
 class Node:
     def __init__(self, parent_game_state: GameState = None,
@@ -91,22 +92,25 @@ class Node:
         :param cand_moves: list of candidate moves for the children
         :return: updates the children list of the node
         """
-        save_move = []
+        low_priority = []
         for cand_move in cand_moves:
             with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds", logger=None):
                 node = Node(self.game_state, cand_move, not self.is_maximising_player, self.depth + 1)
             if not node.taboo:
+                # ROOT NODE
                 if self.depth == 0:
                     node.root_move = cand_move
                 else:
                     node.root_move = self.root_move
-                if node.priority < 4 and with_priority:
+
+                # PRIORITY
+                if node.priority <= PRIORITY_N and with_priority:
                     self.add_child(node)
                 elif not with_priority:
                     self.add_child(node)
                 else:
-                    save_move.append(node.move)
-        return save_move
+                    low_priority.append(node.move)
+        return low_priority
 
     def update_gamestate(self, parent_game_state: GameState) -> GameState:
         """

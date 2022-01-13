@@ -38,18 +38,10 @@ logger.addHandler(ch)
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
     Sudoku AI that computes a move for a given sudoku configuration.
+    Team7_A6 improves on team7_A3 by only adding important nodes to the game tree (with 4 or less empty cells)
+    If only the first layer is reached, don't choose a move with priority 2! (which means 2 empty cells)
+    When the score is negative, it will choose a move that is either a taboo_move if possible
     """
-
-    # TODO prioritise -> Yi He 2e
-    # TODO skip turn -> Yi He 1e
-    # TODO strategies -> 5e
-    # TODO pick strategies depending on the game state phase
-    # TODO horizontale random choice fixen (in minimax door de min en max) -> Yi He
-    # TODO snelle agent -> Jeroen
-    # TODO optimaliseren (sneller) gebruik van eerder gemaakte variablen bij andere functies -> Yi He 3e
-    # TODO save load -> Yi He 4e
-    # TODO verslag -> Sander
-    # TODO code anderen -> Sander
 
     def __init__(self):
         super().__init__()
@@ -61,9 +53,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         :return:
         """
         logger.info("starting compute_best_move")
-        # Determine which strategies to play
-        strategies = get_strategy(game_state)
-
         with Timer(name="Making root", text="Making root - {:0.4f} seconds", logger=logger.debug):
             # Instantiate the root of the game tree
             root_move = Move(0, 0, 0)
@@ -74,26 +63,40 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         with Timer(name="Calculate layer 1", text="Calculate layer 1 - {:0.4f} seconds", logger=logger.debug):
             depth = depth + 1
             # Calculate the first layer of moves depending on the given strategies
+            # Determine which strategies to play
+            strategies = get_strategy(game_state)
             all_moves, taboo_list = get_all_moves(game_state, strategies)
             assert bool(all_moves), "No moves found in layer 1!"
             # Always have a move proposed
             self.propose_move(random.choice(all_moves))
-            safe_moves = root.calculate_children(all_moves, with_priority=False)
-            # Obtain the best move from the minimax
-            # if not bool(root.children):
-            #     _ = root.calculate_children(all_moves, with_priority=False)
-            # elif not (taboo_list):
-            #     taboo_list = safe_moves
+            # CALCULATE CHILDREN
+            low_priority = root.calculate_children(all_moves, with_priority=True)
+            if not bool(root.children):
+                _ = root.calculate_children(all_moves, with_priority=False)
+            elif not taboo_list:
+                taboo_list = low_priority
+            # ACT LIKE THE GREEDY PLAYER
             root.children.sort(key=lambda move: move.priority)
             if root.children[0].priority == 1:
                 self.propose_move(root.children[0].move)
-            else:
-                self.propose_move(root.children[-1].move)
+            # MINIMAX
             best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-            self.propose_move(best_move.root_move)
-            self.propose_taboo(best_move.score, taboo_list)
-
-            logger.info(f"Best move score is {best_move.score}")
+            # DON'T PROPOSE A PRIORITY 2 MOVE IF SCORE = 0
+            if best_move.score == 0 and root.children[-1].priority != 2:
+                self.propose_move(root.children[-1].move)
+            elif best_move.score == 0 and root.children[-1].priority == 2:
+                if bool(taboo_list):
+                    self.propose_move(random.choice(taboo_list))
+                elif bool(low_priority):
+                    self.propose_move(random.choice(low_priority))
+                else:
+                    self.propose_move(best_move.root_move)
+            else:
+                self.propose_move(best_move.root_move)
+            # # PROPOSE A TABOO MOVE IF POSSIBLE IF SCORE IS <0
+            # elif best_move.score < 0 and bool(taboo_list):
+            #     self.propose_taboo(taboo_list)
+            logger.info(f"Best move {best_move.root_move} score is {best_move.score}")
             logger.info(f"FINISHED LAYER 1")
         # ITERATIVE DEEPENING
         # Keep computing moves as long as there are moves to make,
@@ -106,16 +109,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             logger.debug(f"Calculate children layer {depth}")
             with Timer(name="children_depth", text="children_depth - {:0.4f} seconds", logger=None):
                 for child in children:
-                    strategies = get_strategy(child.game_state)
-                    cand_leaves, taboo_list = get_all_moves(child.game_state, strategies)
                     logger.debug(f"Calculate children layer {depth} for child {child.move}")
-                    safe_moves = child.calculate_children(cand_leaves, with_priority=False)
-                    # if not bool(child.children):
-                    #     logger.info("no priority")
-                    #     safe_move = child.calculate_children(cand_leaves, with_priority=False)
-                    # elif not (taboo_list):
-                    #     taboo_list = safe_moves
-                    #     logger.info("has priority and taboo is empty")
+                    strategies = get_strategy(game_state)
+                    all_moves, _ = get_all_moves(game_state, strategies)
+                    # CALCULATE CHILDREN
+                    low_priority = root.calculate_children(all_moves, with_priority=True)
+                    if not bool(root.children):
+                        _ = root.calculate_children(all_moves, with_priority=False)
                     logger.debug(f"Calculated children layer {depth} for child {child.move}")
                     for leaf in child.children:
                         leaves.append(leaf)
@@ -126,10 +126,15 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             if len(children) != 0:
                 logger.debug(f"minimax {depth}")
                 with Timer(name="minimax", text="minimax - {:0.4f} seconds", logger=None):
+                    # MINIMAX
                     best_move = self.minimax(root, depth, -math.inf, math.inf, False)
-                    self.propose_move(best_move.root_move)
-                    self.propose_taboo(best_move.score, taboo_list)
-                    logger.info(f"Best move score is {best_move.score}")
+                    # PROPOSE A TABOO MOVE IF POSSIBLE IF SCORE IS <0
+                    if best_move.score < 0 and bool(taboo_list):
+                        self.propose_taboo(taboo_list)
+                        logger.info(f"Best move {best_move.root_move} score is {best_move.score}, so I play a taboo move")
+                    else:
+                        self.propose_move(best_move.root_move)
+                        logger.info(f"Best move {best_move.root_move} score is {best_move.score}")
                     logger.info(f"FINISHED LAYER {depth}")
                 logger.debug(f"minimaxed {depth}")
             else:
@@ -189,11 +194,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             minValue.add_score(minValue.score + node.value)
             return minValue
 
-    def propose_taboo(self, score: int, taboo_list: List[Move]):
-        if score < 0 and bool(taboo_list):
-            TAB_MOVE = random.choice(taboo_list)
-            self.propose_move(TAB_MOVE)
-            logger.info("TABOO MOVE PLAYED")
-            print(f"PLAYED A TABOO MOVE {TAB_MOVE}")
+    def propose_taboo(self, taboo_list: List[Move]):
+        TAB_MOVE = random.choice(taboo_list)
+        self.propose_move(TAB_MOVE)
+        logger.info("TABOO MOVE PLAYED")
+        print(f"PLAYED A TABOO MOVE {TAB_MOVE}")
 
 
