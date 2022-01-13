@@ -5,13 +5,18 @@ from copy import deepcopy
 from typing import List, Union
 import logging
 from .timer import Timer
+import math
 
-log = logging.getLogger("sudokuai")
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger("sudokuaiA3")
+logger.setLevel(logging.DEBUG)
 
 
 class Node:
-    def __init__(self, parent_game_state: GameState, move: Move, is_maximising_player: bool, depth: int):
+    def __init__(self, parent_game_state: GameState = None,
+                 move: Move = None,
+                 is_maximising_player: bool = None,
+                 depth: int = None,
+                 is_dummy: int = 0):
         """
         a Node object is part of the game tree
         each layer of the game tree represents a turn
@@ -30,18 +35,25 @@ class Node:
         :param is_maximising_player: Is it the maximising player's turn?
         :param depth: Depth of the node in the game tree
         """
-        self.root_move = (0, 0, 0)
-        self.depth = depth
-        self.move = move
-        self.parent_game_state = parent_game_state
-        self.taboo = False
-        self.game_state = self.update_gamestate(self.parent_game_state)
-        self.children = []
-        self.is_maximising_player = is_maximising_player
-        val, priority = self.calc_value()
-        self.value = val
-        self.score = 0
-        self.priority = priority
+        if is_dummy == 0:
+            self.root_move = (0, 0, 0)
+            self.depth = depth
+            self.move = move
+            self.parent_game_state = parent_game_state
+            self.taboo = False
+            self.game_state = self.update_gamestate(self.parent_game_state)
+            self.children = []
+            self.is_maximising_player = is_maximising_player
+            val, priority = self.calc_value()
+            self.value = val
+            self.score = 0
+            self.priority = priority
+        elif is_dummy == 1:
+            self.score = -math.inf
+            self.value = -math.inf
+        elif is_dummy == 2:
+            self.score = math.inf
+            self.value = math.inf
 
     #
     # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
@@ -88,7 +100,7 @@ class Node:
                     node.root_move = cand_move
                 else:
                     node.root_move = self.root_move
-                if node.priority < 5 and with_priority:
+                if node.priority < 4 and with_priority:
                     self.add_child(node)
                 elif not with_priority:
                     self.add_child(node)
