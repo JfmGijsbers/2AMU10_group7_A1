@@ -64,7 +64,7 @@ class Node:
         """
         self.children.append(child)
 
-    # @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
+    @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
     def calculate_children(self, cand_moves: list) -> None:
         """
         Calculates and adds all non-taboo candidate moves
