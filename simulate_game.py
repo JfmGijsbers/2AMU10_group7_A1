@@ -15,7 +15,27 @@ from pathlib import Path
 from competitive_sudoku.execute import solve_sudoku
 from competitive_sudoku.sudoku import GameState, SudokuBoard, Move, TabooMove, load_sudoku_from_text
 from competitive_sudoku.sudokuai import SudokuAI
+import itertools
+import logging
 
+# LOGGER SETTINGS
+logger = logging.getLogger("RUN2")
+logger.setLevel(logging.DEBUG)
+
+fh = logging.FileHandler('TESTRUN2.txt')
+fh.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handlers to the logger
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 def check_oracle(solve_sudoku_path: str) -> None:
     board_text = '''2 2
@@ -33,7 +53,7 @@ def check_oracle(solve_sudoku_path: str) -> None:
         print(output)
 
 
-def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: SudokuAI, solve_sudoku_path: str, calculation_time: float = 0.5) -> None:
+def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: SudokuAI, solve_sudoku_path: str, calculation_time: float = 0.5) -> int:
     """
     Simulates a game between two instances of SudokuAI, starting in initial_board. The first move is played by player1.
     @param initial_board: The initial position of the game.
@@ -115,57 +135,84 @@ def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: Sudoku
             print(game_state)
         if game_state.scores[0] > game_state.scores[1]:
             print('Player 1 wins the game.')
+            return 1
         elif game_state.scores[0] == game_state.scores[1]:
             print('The game ends in a draw.')
+            return 2
         elif game_state.scores[0] < game_state.scores[1]:
             print('Player 2 wins the game.')
+            return 3
 
 
 def main():
-    solve_sudoku_path = 'bin\\solve_sudoku.exe' if platform.system() == 'Windows' else 'bin/solve_sudoku'
+    logger.info(f";time;board;player1;player2;iteratie;winner;winner_name")
 
-    cmdline_parser = argparse.ArgumentParser(description='Script for simulating a competitive sudoku game.')
-    cmdline_parser.add_argument('--first', help="the module name of the first player's SudokuAI class (default: random_player)", default='random_player')
-    cmdline_parser.add_argument('--second', help="the module name of the second player's SudokuAI class (default: random_player)", default='random_player')
-    cmdline_parser.add_argument('--time', help="the time (in seconds) for computing a move (default: 0.5)", type=float, default=0.5)
-    cmdline_parser.add_argument('--check', help="check if the solve_sudoku program works", action='store_true')
-    cmdline_parser.add_argument('--board', metavar='FILE', type=str, help='a text file containing the start position')
-    args = cmdline_parser.parse_args()
+    def custom_sim(time, p1, p2, board):
+        solve_sudoku_path = 'bin\\solve_sudoku.exe' if platform.system() == 'Windows' else 'bin/solve_sudoku'
+        board_text = Path("boards\\" + board).read_text()
+        board = load_sudoku_from_text(board_text)
 
-    if args.check:
-        check_oracle(solve_sudoku_path)
-        return
+        module1 = importlib.import_module(p1 + '.sudokuai')
+        module2 = importlib.import_module(p2 + '.sudokuai')
+        player1 = module1.SudokuAI()
+        player2 = module2.SudokuAI()
+        player1.player_number = 1
+        player2.player_number = 2
+        if p1 in ('random_player', 'greedy_player', 'random_save_player'):
+            player1.solve_sudoku_path = solve_sudoku_path
+        if p2 in ('random_player', 'greedy_player', 'random_save_player'):
+            player2.solve_sudoku_path = solve_sudoku_path
 
-    board_text = '''2 2
-       1   2   .   4
-       .   4   .   2
-       2   1   .   3
-       .   .   .   1
-    '''
-    if args.board:
-        board_text = Path(args.board).read_text()
-    board = load_sudoku_from_text(board_text)
+        # clean up files
+        if os.path.isfile(os.path.join(os.getcwd(), '-1.pkl')):  # Check if there actually is something
+            os.remove(os.path.join(os.getcwd(), '-1.pkl'))
+        if os.path.isfile(os.path.join(os.getcwd(), '1.pkl')):  # Check if there actually is something
+            os.remove(os.path.join(os.getcwd(), '1.pkl'))
+        if os.path.isfile(os.path.join(os.getcwd(), '2.pkl')):  # Check if there actually is something
+            os.remove(os.path.join(os.getcwd(), '2.pkl'))
 
-    module1 = importlib.import_module(args.first + '.sudokuai')
-    module2 = importlib.import_module(args.second + '.sudokuai')
-    player1 = module1.SudokuAI()
-    player2 = module2.SudokuAI()
-    player1.player_number = 1
-    player2.player_number = 2
-    if args.first in ('random_player', 'greedy_player', 'random_save_player'):
-        player1.solve_sudoku_path = solve_sudoku_path
-    if args.second in ('random_player', 'greedy_player', 'random_save_player'):
-        player2.solve_sudoku_path = solve_sudoku_path
+        winner = simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, calculation_time=time)
+        return winner
 
-    # clean up files
-    if os.path.isfile(os.path.join(os.getcwd(), '-1.pkl')):  # Check if there actually is something
-        os.remove(os.path.join(os.getcwd(), '-1.pkl'))
-    if os.path.isfile(os.path.join(os.getcwd(), '1.pkl')):  # Check if there actually is something
-        os.remove(os.path.join(os.getcwd(), '1.pkl'))
-    if os.path.isfile(os.path.join(os.getcwd(), '2.pkl')):  # Check if there actually is something
-        os.remove(os.path.join(os.getcwd(), '2.pkl'))
+    time = [0.1, 0.2, 0.3, 0.5, 1, 5]
+    players = ["team7_A2", "team7_A3", "team7_A6", "greedy_player"]
+    combis = list(itertools.combinations(players, 2))
+    player1 = []
+    player2 = []
+    for combi in combis:
+        player1.append(combi[0])
+        player1.append(combi[1])
+        player2.append(combi[1])
+        player2.append(combi[0])
+    boards = ["empty-2x2.txt", "empty-3x3.txt", "easy-3x3.txt", "random-3x3.txt", "hard-3x3.txt", "empty-4x4.txt", "random-4x4.txt"]
+    N = 5
 
-    simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, calculation_time=args.time)
+    # time = [0.5, 1]
+    # players = ["team7_A2", "team7_A6"]
+    # combis = list(itertools.combinations(players, 2))
+    # player1 = []
+    # player2 = []
+    # for combi in combis:
+    #     player1.append(combi[0])
+    #     player1.append(combi[1])
+    #     player2.append(combi[1])
+    #     player2.append(combi[0])
+    # boards = ["empty-2x2.txt",  "easy-3x3.txt"]
+    # N = 2
+
+    for t in time:
+        for board in boards:
+            for p1, p2 in zip(player1, player2):
+                for i in range(N):
+                    winner = custom_sim(t, p1, p2, board)
+                    print(winner)
+                    if winner == 1:
+                        winner_name = p1
+                    elif winner == 2:
+                        winner_name = "draw"
+                    else:
+                        winner_name = p2
+                    logger.info(f";{t};{board};{p1};{p2};{i};{winner};{winner_name}")
 
 
 
