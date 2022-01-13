@@ -16,7 +16,7 @@ import time
 from .timer import Timer
 
 logger = logging.getLogger("sudokuaiA3")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 fh = logging.FileHandler('timing.txt')
 fh.setLevel(logging.DEBUG)
@@ -94,6 +94,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         random.shuffle(root.children)
         best_move = self.minimax(root, depth, -math.inf, math.inf, False)
         print("finished layer 1")
+        logger.info(f"minimax {depth}")
         self.propose_move(best_move.root_move)
 
         # switch turns
@@ -108,7 +109,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             depth += 1
             # calculate new layer
             logger.debug(f"Calculate children layer {depth}")
-            with Timer(name="children_depth", text="children_depth - {:0.4f} seconds"):
+            with Timer(name="children_depth", text="children_depth - {:0.4f} seconds", logger=None):
                 for child in children:
                     strategies = get_strategy(child.game_state)
                     cand_leaves = get_all_moves(child.game_state, strategies)
@@ -128,8 +129,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     self.propose_move(best_move.root_move)
                     is_maximising_player = not is_maximising_player
                     print(f"finished layer {depth}")
+                logger.info(f"finished minimax {depth}")
                 logger.debug(f"minimaxed {depth}")
             else:
+                logger.info(f"FINISHED TREE, {depth}")
                 print("FINISHED TREE")
 
     def minimax(self, node: Node, depth: int, alpha: Union[float, int], beta: Union[float, int],
