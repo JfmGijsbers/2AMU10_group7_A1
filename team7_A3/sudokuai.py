@@ -17,10 +17,10 @@ logger = logging.getLogger("sudokuaiA3")
 logger.setLevel(logging.CRITICAL)
 
 fh = logging.FileHandler('timing.txt')
-fh.setLevel(logging.CRITICAL)
+fh.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.CRITICAL)
+ch.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

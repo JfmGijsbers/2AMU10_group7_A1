@@ -55,14 +55,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     Sudoku AI that computes a move for a given sudoku configuration.
     """
 
-    """
-    TODO:
-        - function to generate all legal moves - DONE
-        - evaluation function - DONE
-        - ALWAYS have a move proposed (so propose a 'random' move before calculating layers)
-        - minimax tree search algorithm to find best move
-    """
-
     def __init__(self):
         self.highest_value = -1
         super().__init__()

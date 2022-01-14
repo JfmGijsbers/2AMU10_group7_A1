@@ -46,7 +46,6 @@ def check_row(board: SudokuBoard, y, little_num):
             # we got no pairs / triplets
             return
         # elif value in square:
-            # TODO: skip for these values
         else:
             # check if the values occur anywhere else in the row, and remove them if they do
             for i in range(board.m):
@@ -79,8 +78,6 @@ def check_column(board: SudokuBoard, x, little_num):
         if len(values) < 2:
             # we got no pairs / triplets
             return
-        # elif value in square:
-            # TODO: skip for these values
         else:
             # check if the values occur anywhere else in the row, and remove them if they do
             for i in range(board.n):
