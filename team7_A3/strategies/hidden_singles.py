@@ -1,7 +1,7 @@
-from team7_A6.auxiliary import coo2ind, ind2coo, box2coo, get_single_number
+from ..auxiliary import coo2ind, ind2coo, box2coo, get_single_number
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
-from team7_A6.timer import Timer
+from ..timer import Timer
 
 
 # @Timer(name="hidden_singles", text="hidden singles - elapsed time - {:0.4f} seconds")
