@@ -31,6 +31,9 @@ class Node:
             * is_maximising_player: is it the turn of the maximising player
             * taboo: is move a taboo move?
             * value: gained value of the move
+            * priority: the priority of the node based on the minimal empty cells in a unit
+
+        Dummy 1 and 2 are for the minimax to reduce time by avoiding deepcopies
         :param parent_game_state: Parent game state
         :param move: New move
         :param is_maximising_player: Is it the maximising player's turn?
@@ -89,6 +92,7 @@ class Node:
         by making nodes of the moves which
             * calculates the score
             * checks if it's a taboo move
+        :param: with_priority: do you want only add priority moves?
         :param cand_moves: list of candidate moves for the children
         :return: updates the children list of the node
         """
