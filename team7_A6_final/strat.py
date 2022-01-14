@@ -2,12 +2,13 @@ from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
 import logging
 from .auxiliary import coo2ind, calc_box, ind2coo
-from .hidden_singles import hidden_singles
-from .naked_pairs_triples import naked_pairs_triples
+from .strategies.hidden_singles import hidden_singles
 # from .hidden_pairs_triples import hidden_pairs_triples
-from .box_line_reduction import box_line_reduction
-from .pointing_pairs import pointing_pairs
 from .timer import Timer
+
+logger = logging.getLogger("sudokuai")
+logger.setLevel(logging.CRITICAL)
+
 
 def get_strategy(game_state: GameState):
     """
@@ -19,7 +20,7 @@ def get_strategy(game_state: GameState):
 
 
 @Timer(name="get_all_moves", text="get_all_moves - elapsed time - {:0.4f} seconds", logger=None)
-def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
+def get_all_moves(game_state: GameState, strategies: bool = True) -> Tuple[List[Move], List[Move]]:
     """
     Get all moves based on the sudoku solving strategies by:
     1. generate_candidates(game_state) - obtain all legal moves (all_moves), all legal values per cell (little_num,
@@ -58,8 +59,8 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
         # little_num = box_line_reduction(game_state, little_num, row_set, col_set, box_set)
 
     # Update all_moves by converting little_num into a list of Move objects
-    all_moves, pos_taboo, not_taboo = update_all_moves(little_num, game_state.board.N)
-    return all_moves
+    all_moves, pos_taboo, not_taboo, taboo_list = update_all_moves(all_moves, little_num, game_state.board.N)
+    return all_moves, taboo_list
 
 
 @Timer(name="generate_candidates", text="gen_candidates - elapsed time - {:0.4f} seconds", logger=None)
@@ -138,8 +139,9 @@ def generate_candidates(game_state: GameState) -> Tuple[
     return all_moves, little_num, row_set, col_set, box_set
 
 
-# @Timer(name="update_all_moves", text="update all moves - elapsed time - {:0.4f} seconds")
-def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], List[Move], List[Move]]:
+@Timer(name="update_all_moves", text="update all moves - elapsed time - {:0.4f} seconds", logger=None)
+def update_all_moves(legal_moves: List[Move], little_num: List[Set[int]], N: int) -> Tuple[
+    List[Move], List[Move], List[Move], List[Move]]:
     """
     Convert little_num into a list of Move objects
     It returns 3 different possible moves list:
@@ -151,6 +153,7 @@ def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], Li
     :return: list of all possible Moves, list of possible taboo Moves, list of certain non-taboo moves
     """
     all_moves = []
+    taboo_list = []
     pos_taboo = []
     not_taboo = []
     for i in range(N * N):
@@ -164,4 +167,5 @@ def update_all_moves(little_num: List[Set[int]], N: int) -> Tuple[List[Move], Li
             elif len(little_num[i]) > 1:
                 for val in little_num[i]:
                     pos_taboo.append(Move(row, col, val))
-    return all_moves, pos_taboo, not_taboo
+    taboo_list = [tab_move for tab_move in legal_moves if tab_move not in all_moves]
+    return all_moves, pos_taboo, not_taboo, [*taboo_list]

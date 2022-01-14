@@ -6,8 +6,8 @@ from typing import List, Union
 import logging
 from .timer import Timer
 
-log = logging.getLogger("sudokuai")
-log.setLevel(logging.DEBUG)
+# log = logging.getLogger("sudokuai")
+# log.setLevel(logging.DEBUG)
 
 
 class Node:
@@ -40,8 +40,7 @@ class Node:
         self.is_maximising_player = is_maximising_player
         self.value = self.calc_value()
 
-    #
-    # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
+    @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds", logger=None)
     def calc_value(self):
         """
         Calculates the gained value of the move
@@ -51,7 +50,7 @@ class Node:
         if self.depth == 0:
             val = 0
         else:
-            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds"):
+            with Timer(name="evaluate", text="evaluate - elapsed time - {:0.4f} seconds", logger=None):
                 val = evaluate(self.parent_game_state, self.move)
         if not self.is_maximising_player and self.depth != 0:
             val *= -1
@@ -76,7 +75,7 @@ class Node:
         :return: updates the children list of the node
         """
         for cand_move in cand_moves:
-            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds"):
+            with Timer(name="maken van een Node", text="making a node - elapsed time - {:0.4f} seconds", logger=None):
                 node = Node(self.game_state, cand_move, not self.is_maximising_player, self.depth + 1)
             if not node.taboo:
                 if self.depth == 0:

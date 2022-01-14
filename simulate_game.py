@@ -17,6 +17,7 @@ from competitive_sudoku.sudoku import GameState, SudokuBoard, Move, TabooMove, l
 from competitive_sudoku.sudokuai import SudokuAI
 import itertools
 import logging
+from typing import Tuple
 
 # LOGGER SETTINGS
 logger = logging.getLogger("RUN2")
@@ -53,7 +54,7 @@ def check_oracle(solve_sudoku_path: str) -> None:
         print(output)
 
 
-def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: SudokuAI, solve_sudoku_path: str, calculation_time: float = 0.5) -> int:
+def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: SudokuAI, solve_sudoku_path: str, calculation_time: float = 0.5) -> Tuple[int, int, int]:
     """
     Simulates a game between two instances of SudokuAI, starting in initial_board. The first move is played by player1.
     @param initial_board: The initial position of the game.
@@ -135,17 +136,18 @@ def simulate_game(initial_board: SudokuBoard, player1: SudokuAI, player2: Sudoku
             print(game_state)
         if game_state.scores[0] > game_state.scores[1]:
             print('Player 1 wins the game.')
-            return 1
+            return 1, game_state.scores[0], game_state.scores[1]
         elif game_state.scores[0] == game_state.scores[1]:
             print('The game ends in a draw.')
-            return 2
+            return 2, game_state.scores[0], game_state.scores[1]
         elif game_state.scores[0] < game_state.scores[1]:
             print('Player 2 wins the game.')
-            return 3
+            return 3, game_state.scores[0], game_state.scores[1]
 
 
 def main():
-    logger.info(f";time;board;player1;player2;iteratie;winner;winner_name")
+    logger.info("FINAL RUN ===============================================")
+    logger.info(f";time;board;player1;player2;sP1;sP2;iteratie;winner;winner_name")
 
     def custom_sim(time, p1, p2, board):
         solve_sudoku_path = 'bin\\solve_sudoku.exe' if platform.system() == 'Windows' else 'bin/solve_sudoku'
@@ -171,11 +173,11 @@ def main():
         if os.path.isfile(os.path.join(os.getcwd(), '2.pkl')):  # Check if there actually is something
             os.remove(os.path.join(os.getcwd(), '2.pkl'))
 
-        winner = simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, calculation_time=time)
-        return winner
+        winner, sP1, sP2 = simulate_game(board, player1, player2, solve_sudoku_path=solve_sudoku_path, calculation_time=time)
+        return winner, sP1, sP2
 
-    time = [0.1, 0.2, 0.3, 0.5, 1, 5]
-    players = ["team7_A2", "team7_A3", "team7_A6", "greedy_player"]
+    time = [0.5, 1, 5, 0.3, 0.2]
+    players = ["team7_A3_Jeroen", "team7_A2", "team7_A3", "team7_A6", "greedy_player"]
     combis = list(itertools.combinations(players, 2))
     player1 = []
     player2 = []
@@ -184,8 +186,22 @@ def main():
         player1.append(combi[1])
         player2.append(combi[1])
         player2.append(combi[0])
-    boards = ["empty-2x2.txt", "empty-3x3.txt", "easy-3x3.txt", "random-3x3.txt", "hard-3x3.txt", "empty-4x4.txt", "random-4x4.txt"]
-    N = 5
+    boards = ["empty-2x2.txt", "empty-3x3.txt", "easy-3x3.txt", "hard-3x3.txt", "random-4x4.txt"]
+    N = 3
+
+    time = [5, 1, 0.5, 0.3, 0.2]
+    players = ["team7_A3_Jeroen", "team7_A2", "team7_A3", "team7_A6", "greedy_player"]
+    combis = list(itertools.combinations(players, 2))
+    player1 = []
+    player2 = []
+    for combi in combis:
+        player1.append(combi[0])
+        player1.append(combi[1])
+        player2.append(combi[1])
+        player2.append(combi[0])
+    boards = ["hard-3x3.txt", "easy-3x3.txt", "empty-3x3.txt", "empty-2x2.txt"]
+    boards = ["empty-2x2.txt", "empty-3x3.txt", "easy-3x3.txt", "hard-3x3.txt", "random-4x4.txt"]
+    N = 3
 
     # time = [0.5, 1]
     # players = ["team7_A2", "team7_A6"]
@@ -204,15 +220,17 @@ def main():
         for board in boards:
             for p1, p2 in zip(player1, player2):
                 for i in range(N):
-                    winner = custom_sim(t, p1, p2, board)
+                    winner, sP1, sP2 = custom_sim(t, p1, p2, board)
                     print(winner)
                     if winner == 1:
                         winner_name = p1
                     elif winner == 2:
                         winner_name = "draw"
-                    else:
+                    elif winner == 3:
                         winner_name = p2
-                    logger.info(f";{t};{board};{p1};{p2};{i};{winner};{winner_name}")
+                    else:
+                        winner_name = "None"
+                    logger.info(f";{t};{board};{p1};{p2};{sP1};{sP2};{i};{winner};{winner_name}")
 
 
 

@@ -39,17 +39,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     Sudoku AI that computes a move for a given sudoku configuration.
     """
 
-    # TODO prioritise -> Yi He 2e
-    # TODO skip turn -> Yi He 1e
-    # TODO strategies -> 5e
-    # TODO pick strategies depending on the game state phase
-    # TODO horizontale random choice fixen (in minimax door de min en max) -> Yi He
-    # TODO snelle agent -> Jeroen
-    # TODO optimaliseren (sneller) gebruik van eerder gemaakte variablen bij andere functies -> Yi He 3e
-    # TODO save load -> Yi He 4e
-    # TODO verslag -> Sander
-    # TODO code anderen -> Sander
-
     def __init__(self):
         super().__init__()
 
@@ -77,7 +66,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             logging.critical("Not proposing any moves")
             return
 
-        logger.debug("make root")
+        # logger.debug("make root")
         # Instantiate the root of the game tree
         root_move = Move(0, 0, 0)
         depth = 0
@@ -124,7 +113,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # calculate best move
             if len(children) != 0:
                 logger.debug(f"minimax {depth}")
-                with Timer(name="minimax", text="minimax - {:0.4f} seconds"):
+                with Timer(name="minimax", text="minimax - {:0.4f} seconds", logger=None):
                     best_move = self.minimax(root, depth, -math.inf, math.inf, False)
                     self.propose_move(best_move.root_move)
                     is_maximising_player = not is_maximising_player
@@ -153,13 +142,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             node.add_score(node.value)
             return node
         children = node.children
-        # children = deepcopy(node.children)
         if is_maximising_player or node.depth == 0:
             # deep copy node, since it has to be a node object to compare
-            with Timer(name="minimax copy", text="minimax copy - elapsed time - {:0.4f} seconds"):
+            with Timer(name="minimax copy", text="minimax copy - elapsed time - {:0.4f} seconds", logger=None):
                 maxValue = deepcopy(node)
-            maxValue.add_score(-math.inf)
             # assign -inf value to the node
+            maxValue.add_score(-math.inf)
             for child in children:
                 if node.depth == 0:
                     value = self.minimax(child, depth - 1, alpha, beta, True)

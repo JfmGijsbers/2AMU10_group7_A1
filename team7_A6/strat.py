@@ -6,7 +6,8 @@ from .strategies.hidden_singles import hidden_singles
 # from .hidden_pairs_triples import hidden_pairs_triples
 from .timer import Timer
 
-log = logging.getLogger("sudokuai")
+logger = logging.getLogger("sudokuai")
+logger.setLevel(logging.CRITICAL)
 
 
 def get_strategy(game_state: GameState):
