@@ -6,8 +6,8 @@ from typing import List, Union
 import logging
 from .timer import Timer
 
-# log = logging.getLogger("sudokuai")
-# log.setLevel(logging.DEBUG)
+logger = logging.getLogger("sudokuaiA3")
+logger.setLevel(logging.DEBUG)
 
 
 class Node:

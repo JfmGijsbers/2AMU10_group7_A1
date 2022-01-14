@@ -3,7 +3,6 @@ from typing import List, Set, Tuple
 import logging
 from .auxiliary import coo2ind, calc_box, ind2coo
 from .strategies.hidden_singles import hidden_singles
-# from .hidden_pairs_triples import hidden_pairs_triples
 from .timer import Timer
 
 logger = logging.getLogger("sudokuai")
@@ -12,6 +11,8 @@ logger.setLevel(logging.CRITICAL)
 
 def get_strategy(game_state: GameState):
     """
+    PLACE HOLDER FOR GET STRATEGY
+    ==============================
     Determine from the given game state the best fitting strategies
     :param game_state:
     :return:
@@ -53,6 +54,7 @@ def get_all_moves(game_state: GameState, strategies: bool = True) -> Tuple[List[
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
+        # HERE OTHER STRATEGIES CAN BE USED FOR EXAMPLE:
         # little_num = naked_pairs_triples(game_state, little_num)
         # little_num = hidden_pairs_triples(game_state, little_num)
         # little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)

@@ -1,16 +1,13 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState, TabooMove
 from typing import List, Set, Tuple
-import logging
 from .auxiliary import coo2ind, calc_box, ind2coo
 from .hidden_singles import hidden_singles
-from .naked_pairs_triples import naked_pairs_triples
-# from .hidden_pairs_triples import hidden_pairs_triples
-from .box_line_reduction import box_line_reduction
-from .pointing_pairs import pointing_pairs
 from .timer import Timer
 
 def get_strategy(game_state: GameState):
     """
+    PLACE HOLDER FOR GET STRATEGY
+    ==============================
     Determine from the given game state the best fitting strategies
     :param game_state:
     :return:
@@ -52,6 +49,7 @@ def get_all_moves(game_state: GameState, strategies: bool) -> List[Move]:
     # for each strategy prune candidate values per cell (little_num)
     if strategies:
         little_num = hidden_singles(game_state, little_num)
+        # HERE OTHER STRATEGIES CAN BE USED FOR EXAMPLE:
         # little_num = naked_pairs_triples(game_state, little_num)
         # little_num = hidden_pairs_triples(game_state, little_num)
         # little_num = pointing_pairs(game_state, little_num, row_set, col_set, box_set)

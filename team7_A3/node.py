@@ -12,6 +12,7 @@ logger.setLevel(logging.CRITICAL)
 
 PRIORITY_N = 4
 
+
 class Node:
     def __init__(self, parent_game_state: GameState = None,
                  move: Move = None,
@@ -32,12 +33,14 @@ class Node:
             * taboo: is move a taboo move?
             * value: gained value of the move
             * priority: the priority of the node based on the minimal empty cells in a unit
+            * score: to store the score for during the minimax
 
-        Dummy 1 and 2 are for the minimax to reduce time by avoiding deepcopies
+        Dummy 1 and 2 are for the minimax to reduce time by avoiding deep copies
         :param parent_game_state: Parent game state
         :param move: New move
         :param is_maximising_player: Is it the maximising player's turn?
         :param depth: Depth of the node in the game tree
+        :param is_dummy: Boolean to indicate if this is a dummy node for the minimax functionality
         """
         if is_dummy == 0:
             self.root_move = (0, 0, 0)
@@ -59,8 +62,7 @@ class Node:
             self.score = math.inf
             self.value = math.inf
 
-    #
-    # @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds")
+    @Timer(name="calculate_val", text="calculate_val - elapsed time - {:0.4f} seconds", logger=None)
     def calc_value(self):
         """
         Calculates the gained value of the move
@@ -85,15 +87,15 @@ class Node:
         """
         self.children.append(child)
 
-    # @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds")
+    @Timer(name="calculate_children", text="calculate_children - elapsed time - {:0.4f} seconds", logger=None)
     def calculate_children(self, cand_moves: list, with_priority: bool) -> List[Move]:
         """
         Calculates and adds all non-taboo candidate moves
         by making nodes of the moves which
             * calculates the score
             * checks if it's a taboo move
-        :param: with_priority: do you want only add priority moves?
         :param cand_moves: list of candidate moves for the children
+        :param: with_priority: do you want only add priority moves?
         :return: updates the children list of the node
         """
         low_priority = []

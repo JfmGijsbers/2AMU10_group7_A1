@@ -7,6 +7,8 @@ from itertools import combinations
 def box_line_reduction(game_state: GameState, little_num: List[Set[int]], row_set: List[Set[int]],
                        col_set: List[Set[int]], box_set: List[Set[int]]) -> List[Set[int]]:
     """
+    PLACEHOLDER FOR BOX LINE REDUCTION
+    ===========================================
     Prune the little_num by using box line reduction
 
     definition of the sizes:
