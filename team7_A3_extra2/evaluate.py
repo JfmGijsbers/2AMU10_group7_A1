@@ -1,5 +1,5 @@
 from competitive_sudoku.sudoku import Move, SudokuBoard, GameState
-from .auxiliary import box2coo, calc_box
+from .auxiliary import calc_box, box2coo
 
 SCORES = [0, 1, 3, 7]
 
@@ -13,6 +13,8 @@ def check_row(board: SudokuBoard, move: Move) -> int:
     :return: 1 if move completes the row, 0 otherwise
     """
     row_val = [board.get(move.i, k) for k in range(board.N) if k != move.j]
+    if move.value in row_val:
+        return -1
     return 0 if 0 in row_val else 1
 
 
@@ -25,6 +27,8 @@ def check_column(board: SudokuBoard, move: Move) -> int:
     :return: 1 if move completes the col, 0 otherwise
     """
     col_val = [board.get(k, move.j) for k in range(board.N) if k != move.i]
+    if move.value in col_val:
+        return -1
     return 0 if 0 in col_val else 1
 
 
@@ -41,6 +45,8 @@ def check_box(board: SudokuBoard, move: Move) -> int:
     i_box = calc_box(move.i, move.j, m, n)
     box_cells = box2coo(i_box, m, n)
     box_val = [board.get(cell[0], cell[1]) for cell in box_cells if not (cell[0] == move.i and cell[1] == move.j)]
+    if move.value in box_val:
+        return -1
     return 0 if 0 in box_val else 1
 
 
@@ -56,7 +62,13 @@ def evaluate(parent_game_state: GameState, move: Move) -> int:
     """
     board = parent_game_state.board
     col = check_column(board, move)
+    if col == -1:
+        return -1
     row = check_row(board, move)
+    if row == -1:
+        return -1
     box = check_box(board, move)
+    if box == -1:
+        return -1
     n_units = col + row + box
     return SCORES[n_units]

@@ -1,19 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan  6 14:29:49 2022
-
-@author: yihez
-"""
-# timer.py
-import functools
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Dict, Optional
+from typing import Callable, ClassVar, Dict, Optional
 
 from contextlib import ContextDecorator
 
-
-# let Timer class inherit ContextDecorator
 
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""
@@ -22,20 +12,21 @@ class TimerError(Exception):
 @dataclass
 class Timer(ContextDecorator):
     """
-    Can be used as:
-        * Class
+    This timer class is based on the following tutorial:
+        https://realpython.com/python-timer/
+    This timer class can be used to time pieces of the code in three different ways:
+    1. As a Class
         t = Timer(name="class")
         t.start()
         # Do something
         t.stop()
-        * Context manager
+    2. As a Context manager
         with Timer(name="context manager"):
             # Do something
-        * decorator
+    3. As a decorator
         @Timer(name="Decorator")
         def stuff():
             # Do Something
-
     """
     timers: ClassVar[Dict[str, float]] = dict()
     name: Optional[str] = None
@@ -76,12 +67,3 @@ class Timer(ContextDecorator):
     def __exit__(self, *exc_info):
         """Stop the context manager timer"""
         self.stop()
-
-    # if ContextDecorator is disabled
-    # def __call__(self, func):
-    #     """Support using Timer as decorator"""
-    #     @functools.wraps(func)
-    #     def wrapper_timer(*args, **kwargs):
-    #         with self:
-    #             return func(*args, **kwargs)
-    #     return wrapper_timer

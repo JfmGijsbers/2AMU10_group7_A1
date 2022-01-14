@@ -37,21 +37,21 @@ def box2coo(i, m, n) -> list:
 
 def ind2coo(index: int, N: int) -> Tuple[int]:
     """
-    Convert index of a N*N list into a coordinate for a NxN board
+    convert index of a N*N list into a coordinate for a NxN board
     """
     return np.unravel_index(index, (N, N))
 
 
 def coo2ind(index_row: int, index_col: int, N: int) -> int:
     """
-    Convert coordinate for a NxN board into index for a N*N list
+    convert coordinate for a NxN board into index for a N*N list
     """
     return np.ravel_multi_index((index_row, index_col), (N, N))
 
 
 def get_single_number(arr: List[int]) -> Set[int]:
     """
-    Returns the values that only occur once in the list
+    returns the values that only occur once in the list
     :param arr: list with integers
     :return: list with only once occuring integers
     """
